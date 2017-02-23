@@ -16,11 +16,12 @@ def evaluate_average(sum, count):
 def select_random_users(conn, limit1, limit2):
 
     query_users = "SELECT u.userid, u.avgrating " \
-                 "FROM movielens_user_trailer u "\
-                 "LIMIT ?, ?"
+                 "FROM movielens_user_trailer u "
+                 # "LIMIT ?, ?"
 
     c = conn.cursor()
-    c.execute(query_users, (limit1, limit2,))
+    # c.execute(query_users, (limit1, limit2,))
+    c.execute(query_users)
     all_users = c.fetchall()
     return all_users
 
@@ -41,9 +42,10 @@ def get_random_movie_set(user):
           "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
           "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
           "JOIN movielens_rating r ON r.movielensid = mm.movielensid " \
-          "WHERE r.userid = ? "
+          "WHERE r.userid = ? " \
+          "ORDER BY t.id "
 
-    limit = 100
+    limit = 200
     c = conn.cursor()
     c.execute(sql, (user,))
     all_movies = c.fetchall()
@@ -76,11 +78,13 @@ def get_user_training_test_movies(user):
           "JOIN movielens_rating r ON r.movielensid = m.movielensid " \
           "JOIN movies ms ON ms.imdbid = t.imdbid " \
           "WHERE t.best_file = 1 " \
-          "AND r.userid = ? "
+          "AND r.userid = ? " \
+          "ORDER BY t.id "
+
     c = conn.cursor()
     c.execute(sql, (user,))
     all_movies = c.fetchall()
-    elite_test_set = filter((lambda x: x[1] > 4), all_movies)  # good movies for each user
+    elite_test_set = filter((lambda x: x[1] >= 4), all_movies)  # good movies for each user
     garbage_test_set = filter((lambda x: x[1] < 3), all_movies)  # bad movies for each user
 
     return elite_test_set, all_movies, garbage_test_set

@@ -1,12 +1,10 @@
 # Simplicity is the final achievement. After one has played a vast quantity of notes and more notes, it is
 # simplicity that emerges as the crowning reward of art. Frederic Chopin.
 
-import random, operator, sqlite3
-from utils.utils import get_user_baseline, get_item_baseline, evaluate_average, get_user_training_test_movies, \
-    get_random_movie_set
+import random, operator, sqlite3, time
+from utils.utils import get_user_baseline, get_item_baseline, get_user_training_test_movies, get_random_movie_set
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
-from multiprocessing import Manager
 
 _avg_ratings = 3.51611876907599
 _std_deviation = 1.098732183
@@ -65,59 +63,15 @@ def get_random_predictions(movies):
     return random_movies
 
 
+# def get_collaborative_predictions():
+
+
+
+
 def sort_desc(list_to_sort):
 
     list_to_sort.sort(key=operator.itemgetter(1), reverse=True)
     return list_to_sort
-
-
-def evaluate(user_profiles, N, feature_vector_name):
-
-    sum_recall, sum_precision, sum_false_positive_rate = 0, 0, 0
-    sum_diversity = 0
-
-    for user, profile in user_profiles.iteritems():
-
-        relevant_set = profile['datasets']['relevant_movies']
-        irrelevant_set = profile['datasets']['irrelevant_movies']
-
-        full_prediction_set = profile['predictions'][feature_vector_name]
-        # full_set.sort(reverse=True)
-        topN = [x[0] for x in full_prediction_set[:N]]  # topN list composed by movies IDs
-
-        # how many items of the relevant set are retrieved (top-N)?
-        true_positives = float(sum([1 if movie[2] in topN else 0 for movie in relevant_set]))
-        true_negatives = float(sum([1 if movie[2] not in topN else 0 for movie in irrelevant_set]))
-
-        false_negatives = float(len(relevant_set) - true_positives)
-        false_positives = float(len(irrelevant_set) - true_negatives)
-
-        # print "Relevant Set", relevant_set
-        # print "Size", len(relevant_set)
-        # print "Irrelevant Set", irrelevant_set
-        # print "Size", len(irrelevant_set)
-        # print "Full Set", full_prediction_set
-        # print len(full_prediction_set)
-        # print "Feature Vector", feature_vector_name
-        # print "True Positives", true_positives
-        # print "True Negatives", true_negatives
-        # print "False Negatives", false_negatives
-        # print "False Positives", false_positives
-        # print "Top-N", topN
-        # exit()
-
-        try:
-            precision = true_positives / (true_positives + false_positives)
-        except ZeroDivisionError:
-            precision = 0
-
-        recall = true_positives / (true_positives + false_negatives)
-
-        sum_precision += precision
-        sum_recall += recall
-
-    size = len(user_profiles)
-    return evaluate_average(sum_precision, size), evaluate_average(sum_recall, size)
 
 
 def read_user_general_baseline():
@@ -147,32 +101,31 @@ def read_movie_general_baseline():
 
 
 # Predict ratings
-def build_user_profile(users, convnet_similarity_matrix):
+def build_user_profile(user_profiles, convnet_similarity_matrix):
 
     _general_baseline, _global_average = read_user_general_baseline()
     _ratings_by_movie = read_movie_general_baseline()
 
-    user_profiles = {}
+    start = time.time()
 
-    for user in users:
+    for userid, profile in user_profiles.iterrows():
 
-        user_baseline = get_user_baseline(user[0], _general_baseline, _global_average)
-        user_movies_test, all_movies, garbage_test_set = get_user_training_test_movies(user[0])
+        movies_set = profile['relevant_set'] + profile['irrelevant_set'] + profile['random_set']
 
-        if len(user_movies_test) == 0:
-            continue
+        predictions_content_based = get_predictions(profile['user_baseline'], movies_set, profile['all_movies'],
+                                                    convnet_similarity_matrix, _ratings_by_movie, _global_average)
 
-        random_movies = get_random_movie_set(user[0])
-        movies_set = user_movies_test + garbage_test_set + random_movies
-
-        predictions = get_predictions(user_baseline, movies_set, all_movies, convnet_similarity_matrix,
-                                      _ratings_by_movie, _global_average)
+        print "part 1 tok", time.time() - start, "seconds"
 
         predictions_random = get_random_predictions(movies_set)
 
-        user_profiles[user[0]] = {'datasets': {'relevant_movies': user_movies_test,
-                                               'irrelevant_movies': garbage_test_set},
-                                  'userid': user[0],
-                                  'predictions': {'deep': predictions,
+        print "part 2 tok", time.time() - start, "seconds"
+
+        predictions_collaborative = get_collaborative_predictions()
+
+        user_profiles[userid] = {'datasets': {'relevant_movies': profile['relevant_set'],
+                                               'irrelevant_movies': profile['irrelevant_set']},
+                                  'userid': userid,
+                                  'predictions': {'deep': predictions_content_based,
                                                   'random': predictions_random}}
     return user_profiles

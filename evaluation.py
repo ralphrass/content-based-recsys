@@ -9,7 +9,7 @@ def evaluate(user_profiles, N, feature_vector_name, sim_matrix):
     for user, profile in user_profiles.iteritems():
 
         relevant_set = profile['datasets']['relevant_movies']
-        irrelevant_set = profile['datasets']['irrelevant_movies']
+        # irrelevant_set = profile['datasets']['irrelevant_movies']
         full_prediction_set = profile['predictions'][feature_vector_name]
         #
         # print "Relevant Set", relevant_set
@@ -22,10 +22,10 @@ def evaluate(user_profiles, N, feature_vector_name, sim_matrix):
 
         # how many items of the relevant set are retrieved (top-N)?
         true_positives = float(sum([1 if movie[2] in topN else 0 for movie in relevant_set]))
-        true_negatives = float(sum([1 if movie[2] not in topN else 0 for movie in irrelevant_set]))
+        # true_negatives = float(sum([1 if movie[2] not in topN else 0 for movie in irrelevant_set]))
 
         false_negatives = float(len(relevant_set) - true_positives)
-        false_positives = float(len(irrelevant_set) - true_negatives)
+        # false_positives = float(len(irrelevant_set) - true_negatives)
 
         if N > 1 and sim_matrix is not None:
             diversity = sum([sim_matrix[i][j] for i in rec_set for j in rec_set if i != j]) / 2

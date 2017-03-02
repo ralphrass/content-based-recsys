@@ -1,8 +1,8 @@
 import sqlite3, time
 import recommender, evaluation
-import pandas as pd
+# import pandas as pd
 from multiprocessing import Process, Manager
-from utils.utils import extract_features, select_random_users
+from utils.utils import extract_features
 from utils.opening_feat import load_features
 
 iterations = range(1, 11)
@@ -19,19 +19,18 @@ print "batch", batch+1
 # users = select_random_users(conn, 100 * batch, 100)
 
 user_profiles = load_features('content/user_profiles_dataframe.pkl')
-# user_profiles = pd.DataFrame(load_features('content/user_profiles.pkl'),
-#                              columns=['avg', 'relevant_set', 'irrelevant_set', 'all_movies', 'random_movies'])
-DEEP_FEATURES_BOF = extract_features('content/bof_128.bin')
+# user_profiles = user_profiles[:20]
+# print "AVG", user_profiles.iloc[7]['avg'], "."
 
-print user_profiles.head()
-exit()
+DEEP_FEATURES_BOF = extract_features('content/bof_128.bin')
 
 # Map every similarity between each movie
 convnet_similarity_matrix = load_features('content/movie_cosine_similarities_deep.bin')
+user_user_matrix = load_features('content/user_user_similarity_matrix.pkl')
 
 start = time.time()
 
-user_profiles = recommender.build_user_profile(user_profiles, convnet_similarity_matrix)
+new_user_profiles = recommender.build_user_profile(user_profiles, convnet_similarity_matrix, user_user_matrix)
 
 print time.time()
 print "Profiles buit"
@@ -57,7 +56,7 @@ results = manager.dict()
 jobs = []
 for index in iterations:
     results[index] = {}
-    p = Process(target=experiment, args=(results, index, user_profiles, convnet_similarity_matrix))
+    p = Process(target=experiment, args=(results, index, new_user_profiles, convnet_similarity_matrix))
     jobs.append(p)
     p.start()
 

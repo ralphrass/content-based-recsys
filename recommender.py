@@ -2,7 +2,7 @@
 # simplicity that emerges as the crowning reward of art. Frederic Chopin.
 
 import random, operator, sqlite3, time
-from utils.utils import get_user_baseline, get_item_baseline, get_user_training_test_movies, get_random_movie_set
+from utils.utils import get_user_baseline, get_item_baseline
 import pandas as pd
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -63,9 +63,34 @@ def get_random_predictions(movies):
     return random_movies
 
 
-# def get_collaborative_predictions():
+# Each movie to predict contains: trailer id, user rating and movielens id
+def get_collaborative_predictions(userid, user_average, movies_to_predict, user_profiles, user_user_similarity, all_ratings):
 
+    # conn = sqlite3.connect('content/database.db')
 
+    predictions = []
+    neighbours = user_user_similarity.iloc[userid]['neighbours']
+
+    # find the set of neighbours that also rated movie 'a'
+    for movie in movies_to_predict:
+
+        denominator = sum([abs(sim) for user, sim in neighbours])
+        numerator = 0
+
+        for user, sim in neighbours:
+            avg = user_profiles.iloc[user]['avg']
+            numerator += sim * (all_ratings.iloc[user]['rating'] - avg)
+
+        # numerator = sum([sim * (all_ratings.iloc[user]['rating'] - user_profiles.iloc[user]['avg'])
+        #                  for user, sim in neighbours])
+
+        prediction_user_item = user_average + numerator / denominator
+
+        predictions.append((movie[2], prediction_user_item))
+
+    # conn.close()
+
+    return predictions
 
 
 def sort_desc(list_to_sort):
@@ -79,8 +104,11 @@ def read_user_general_baseline():
     conn = sqlite3.connect('content/database.db')
 
     _ratings = pd.read_sql("SELECT userid, SUM(rating)/COUNT(rating) AS average "
-                           "FROM movielens_rating GROUP BY userid ORDER BY userid", conn, columns=['average'],
-                           index_col='userID')
+                           "FROM movielens_rating GROUP BY userid ORDER BY userid", conn, columns=['userID', 'average'])
+    # print _ratings.columns
+    # print _ratings.head()
+    # print _ratings.tail()
+    # print _ratings[_ratings['userID'] == 85043]
 
     conn.close()
 
@@ -101,31 +129,47 @@ def read_movie_general_baseline():
 
 
 # Predict ratings
-def build_user_profile(user_profiles, convnet_similarity_matrix):
+def build_user_profile(user_profiles, convnet_similarity_matrix, user_user_matrix):
 
     _general_baseline, _global_average = read_user_general_baseline()
     _ratings_by_movie = read_movie_general_baseline()
 
-    start = time.time()
+    conn = sqlite3.connect('content/database.db')
+    all_ratings = pd.read_sql('select userID, movielensID, rating from movielens_rating', conn, index_col='userID')
+
+    conn.close()
+    print "all ratings read"
+    # start = time.time()
+
+    new_user_profiles = {}
 
     for userid, profile in user_profiles.iterrows():
 
         movies_set = profile['relevant_set'] + profile['irrelevant_set'] + profile['random_set']
 
-        predictions_content_based = get_predictions(profile['user_baseline'], movies_set, profile['all_movies'],
-                                                    convnet_similarity_matrix, _ratings_by_movie, _global_average)
+        if type(movies_set) == float:
+            continue
 
-        print "part 1 tok", time.time() - start, "seconds"
+        # predictions_content_based = get_predictions(profile['user_baseline'], movies_set, profile['all_movies'],
+        #                                             convnet_similarity_matrix, _ratings_by_movie, _global_average)
+
+        # print "part 1 tok", time.time() - start, "seconds"
 
         predictions_random = get_random_predictions(movies_set)
 
-        print "part 2 tok", time.time() - start, "seconds"
+        # print "part 2 tok", time.time() - start, "seconds"
 
-        predictions_collaborative = get_collaborative_predictions()
+        # print movies_set
+        # exit()
 
-        user_profiles[userid] = {'datasets': {'relevant_movies': profile['relevant_set'],
-                                               'irrelevant_movies': profile['irrelevant_set']},
-                                  'userid': userid,
-                                  'predictions': {'deep': predictions_content_based,
-                                                  'random': predictions_random}}
-    return user_profiles
+        predictions_collaborative = get_collaborative_predictions(userid, profile['avg'], movies_set,
+                                                                  user_profiles, user_user_matrix, all_ratings)
+        print predictions_collaborative
+        exit()
+
+        new_user_profiles[userid] = {'datasets': {'relevant_movies': profile['relevant_set'],
+                                                  'irrelevant_movies': profile['irrelevant_set']},
+                                     'userid': userid,
+                                     'predictions': {'deep': predictions_content_based,
+                                                     'random': predictions_random}}
+    return new_user_profiles

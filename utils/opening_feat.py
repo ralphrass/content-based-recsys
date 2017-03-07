@@ -3,7 +3,7 @@ import cPickle as pickle
 
 def save_obj(obj, name ):
 
-	with open('obj/'+ name + '.pkl', 'wb') as f:
+	with open(name + '.pkl', 'wb') as f:
 		pickle.dump(obj, f, pickle.HIGHEST_PROTOCOL)
 
 

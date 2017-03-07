@@ -16,7 +16,8 @@ def evaluate_average(sum, count):
 def select_random_users(conn, limit1, limit2):
 
     query_users = "SELECT u.userid, u.avgrating " \
-                 "FROM movielens_user_trailer u "
+                 "FROM movielens_user_trailer u " \
+                  "ORDER BY u.userid "
                  # "LIMIT ?, ?"
 
     c = conn.cursor()
@@ -53,13 +54,14 @@ def get_random_movie_set(user):
         return 0
 
     movies = random.sample(all_movies, limit)
+    conn.close()
 
     return movies
 
 
 def get_user_baseline(userid, _ratings, _global_average):
 
-    return _ratings.loc[userid]['average'] - _global_average
+    return _ratings.iloc[userid]['average'] - _global_average
 
 
 def get_item_baseline(user_baseline, movieid, _ratings_by_movie, _global_average):
@@ -76,18 +78,21 @@ def get_user_training_test_movies(user):
           "FROM trailers t " \
           "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
           "JOIN movielens_rating r ON r.movielensid = m.movielensid " \
-          "JOIN movies ms ON ms.imdbid = t.imdbid " \
           "WHERE t.best_file = 1 " \
           "AND r.userid = ? " \
           "ORDER BY t.id "
+    print sql
 
     c = conn.cursor()
     c.execute(sql, (user,))
     all_movies = c.fetchall()
-    elite_test_set = filter((lambda x: x[1] >= 4), all_movies)  # good movies for each user
-    garbage_test_set = filter((lambda x: x[1] < 3), all_movies)  # bad movies for each user
+    relevant_test_set = filter((lambda x: x[1] >= 4), all_movies)  # good movies for each user
+    irrelevant_test_set = filter((lambda x: x[1] < 3), all_movies)  # bad movies for each user
+    conn.close()
 
-    return elite_test_set, all_movies, garbage_test_set
+    all_movies_ids = [movielensid for trailerid, rating, movielensid in all_movies]
+
+    return relevant_test_set, all_movies, irrelevant_test_set, all_movies_ids
 
 
 def get_similarity_matrices():

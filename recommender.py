@@ -64,31 +64,36 @@ def get_random_predictions(movies):
 
 
 # Each movie to predict contains: trailer id, user rating and movielens id
-def get_collaborative_predictions(userid, user_average, movies_to_predict, user_profiles, user_user_similarity, all_ratings):
-
-    # conn = sqlite3.connect('content/database.db')
+def get_collaborative_predictions(userid, user_average, movies_to_predict, all_ratings):
 
     predictions = []
-    neighbours = user_user_similarity.iloc[userid]['neighbours']
+    current_user_ratings = all_ratings.loc[userid]
 
-    # find the set of neighbours that also rated movie 'a'
-    for movie in movies_to_predict:
+    for movie in movies_to_predict:  # find the set of neighbours that also rated movie 'a'
 
-        denominator = sum([abs(sim) for user, sim in neighbours])
-        numerator = 0
+        neighbours = all_ratings[all_ratings['movielensID'] == movie[2]].index
+        numerator, denominator = 0, 0
 
-        for user, sim in neighbours:
-            avg = user_profiles.iloc[user]['avg']
-            numerator += sim * (all_ratings.iloc[user]['rating'] - avg)
+        for neighbour_id in neighbours:
 
-        # numerator = sum([sim * (all_ratings.iloc[user]['rating'] - user_profiles.iloc[user]['avg'])
-        #                  for user, sim in neighbours])
+            if neighbour_id == userid:
+                continue
+
+            neighbour_movies = all_ratings.loc[neighbour_id]
+
+            intersection = pd.merge(neighbour_movies, current_user_ratings, on='movielensID')
+
+            try:
+                similarity = cosine_similarity(intersection['rating_x'].reshape(1, -1), intersection['rating_y'].reshape(1, -1))[0][0]
+            except ValueError:
+                similarity = 0
+
+            denominator += abs(similarity)
+            neighbour_movie_rating = neighbour_movies[neighbour_movies['movielensID'] == movie[2]]['rating']
+            numerator += similarity * (neighbour_movie_rating - (neighbour_movies['rating'].sum() / neighbour_movies['rating'].size))
 
         prediction_user_item = user_average + numerator / denominator
-
         predictions.append((movie[2], prediction_user_item))
-
-    # conn.close()
 
     return predictions
 
@@ -136,8 +141,11 @@ def build_user_profile(user_profiles, convnet_similarity_matrix, user_user_matri
 
     conn = sqlite3.connect('content/database.db')
     all_ratings = pd.read_sql('select userID, movielensID, rating from movielens_rating', conn, index_col='userID')
-
     conn.close()
+
+    # print all_ratings[all_ratings['movielensID'] == 112].index
+    # exit()
+
     print "all ratings read"
     # start = time.time()
 
@@ -150,26 +158,22 @@ def build_user_profile(user_profiles, convnet_similarity_matrix, user_user_matri
         if type(movies_set) == float:
             continue
 
-        # predictions_content_based = get_predictions(profile['user_baseline'], movies_set, profile['all_movies'],
-        #                                             convnet_similarity_matrix, _ratings_by_movie, _global_average)
+        start = time.time()
 
-        # print "part 1 tok", time.time() - start, "seconds"
+        predictions_collaborative = get_collaborative_predictions(userid, profile['avg'], movies_set, all_ratings)
+        print predictions_collaborative
 
-        predictions_random = get_random_predictions(movies_set)
+        print "Collaborative filtering tok", time.time() - start, "seconds"
+        exit()
+
+        predictions_content_based = get_predictions(profile['user_baseline'], movies_set, profile['all_movies'],
+                                                    convnet_similarity_matrix, _ratings_by_movie, _global_average)
 
         # print "part 2 tok", time.time() - start, "seconds"
-
-        # print movies_set
-        # exit()
-
-        predictions_collaborative = get_collaborative_predictions(userid, profile['avg'], movies_set,
-                                                                  user_profiles, user_user_matrix, all_ratings)
-        print predictions_collaborative
-        exit()
 
         new_user_profiles[userid] = {'datasets': {'relevant_movies': profile['relevant_set'],
                                                   'irrelevant_movies': profile['irrelevant_set']},
                                      'userid': userid,
-                                     'predictions': {'deep': predictions_content_based,
-                                                     'random': predictions_random}}
+                                     'predictions': {'deep': predictions_content_based}
+                                     }
     return new_user_profiles

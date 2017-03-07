@@ -33,7 +33,7 @@ start = time.time()
 new_user_profiles = recommender.build_user_profile(user_profiles, convnet_similarity_matrix, user_user_matrix)
 
 print time.time()
-print "Profiles buit"
+print "Profiles built"
 print (time.time() - start), "seconds"
 
 

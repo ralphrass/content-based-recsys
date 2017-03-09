@@ -68,8 +68,8 @@ for userid, profile in users_dict.iteritems():
         print count, "user-movies read"
 
     all_movies_ids = [n[0] for n in users_dict[userid]['all_movies']]
-    unrated_movies = [movie for movie in _all_movies if movie[2] not in all_movies_ids]
-    users_dict[userid]['random_set'] = random.sample(unrated_movies, 200)
+    unrated_movies = [movie for movie in _all_movies if movie[0] not in all_movies_ids]
+    users_dict[userid]['random_set'] = random.sample(unrated_movies, 100)
 
 print "starting transformation..."
 

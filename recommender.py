@@ -185,7 +185,7 @@ def build_user_profile(user_profiles, convnet_similarity_matrix):
     new_user_profiles = {}
 
     # todo paralelize this
-    for userid, profile in user_profiles.iloc[:2000].iterrows():
+    for userid, profile in user_profiles.iloc[:6000].iterrows():
         print userid, "userid"
         movies_set = profile['relevant_set'] + profile['irrelevant_set'] + profile['random_set']
 

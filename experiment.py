@@ -63,7 +63,7 @@ for index in range(1, 6):
 
 print results
 
-save_obj(results, 'results')
+save_obj(results, 'results_2k')
 
 end = time.time()
 print "Execution time", (end - start)

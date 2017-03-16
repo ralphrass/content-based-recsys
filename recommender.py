@@ -55,107 +55,72 @@ def get_content_based_predictions(user_baseline, movies, all_movies, sim_matrix,
 
 
 # Each movie to predict contains: trailer id [0], user rating [1] and movielens id [2]
-def get_user_collaborative_predictions(userid, user_average, movies_to_predict, all_ratings):
-
-    predictions = []
-    current_user_ratings = all_ratings.loc[userid]
-
-    for movie in movies_to_predict:
-
-        # limit to 5% neighbours that also rated the current movie
-        neighbours = all_ratings[all_ratings['movielensID'] == movie[2]].sample(frac=0.01).index
-        numerator, denominator = 0, 0
-
-        for neighbour_id in neighbours:
-
-            if neighbour_id == userid:
-                continue
-
-            neighbour_movies = all_ratings.loc[neighbour_id]
-            # intersection = pd.merge(neighbour_movies, current_user_ratings, on='movielensID')
-            ratings_user_x = current_user_ratings[current_user_ratings['movielensID'].isin(
-                neighbour_movies['movielensID'].tolist())]['rating']
-            ratings_user_y = neighbour_movies[neighbour_movies['movielensID'].isin(
-                current_user_ratings['movielensID'].tolist())]['rating']
-
-            try:
-                # similarity = cosine_similarity(intersection['rating_x'].reshape(1, -1),
-                #                                intersection['rating_y'].reshape(1, -1))[0][0]
-                similarity = cosine_similarity(ratings_user_x.reshape(1, -1), ratings_user_y.reshape(1, -1))[0][0]
-            except ValueError:
-                similarity = 0
-
-            denominator += abs(similarity)
-            neighbour_movie_rating = neighbour_movies[neighbour_movies['movielensID'] == movie[2]]['rating'].iloc[0]
-            numerator += similarity * (neighbour_movie_rating - neighbour_movies['rating'].mean())
-
-        try:
-            prediction_user_item = user_average + numerator / denominator
-        except ZeroDivisionError:
-            continue
-
-        predictions.append((movie[2], prediction_user_item, movie[0]))
-
-    return predictions
-
-
-# Return the top 30 most similar movies based on item-item collaborative filtering
-# def get_top_similar_collaborative_items(_all_movies, _all_ratings, target_movie_movielens_id):
+# def get_user_collaborative_predictions(userid, user_average, movies_to_predict, all_ratings):
 #
-#     key = _all_movies[_all_movies['movielensID'] == target_movie_movielens_id].index[0]
-#     other_items = _all_movies.iloc[key + 1:]
+#     predictions = []
+#     current_user_ratings = all_ratings.loc[userid]
 #
-#     users_that_rated_target_movie = _all_ratings[_all_ratings['movielensID'] == target_movie_movielens_id]
+#     for movie in movies_to_predict:
 #
-#     similarities = []
+#         # limit to 5% neighbours that also rated the current movie
+#         neighbours = all_ratings[all_ratings['movielensID'] == movie[2]].sample(frac=0.01).index
+#         numerator, denominator = 0, 0
 #
-#     for sub_key, sub_value in other_items.iterrows():
+#         for neighbour_id in neighbours:
 #
-#         neighbour_trailer_id, neighbour_movie_id = sub_value
-#         # print neighbour_movie_id
+#             if neighbour_id == userid:
+#                 continue
 #
-#         users_that_rated_both_movies = _all_ratings[(_all_ratings['movielensID'] == neighbour_movie_id) &
-#                                                     (_all_ratings['userID'].isin(
-#                                                         users_that_rated_target_movie['userID'].tolist()))][
-#             'userID'].tolist()
+#             neighbour_movies = all_ratings.loc[neighbour_id]
+#             # intersection = pd.merge(neighbour_movies, current_user_ratings, on='movielensID')
+#             ratings_user_x = current_user_ratings[current_user_ratings['movielensID'].isin(
+#                 neighbour_movies['movielensID'].tolist())]['rating']
+#             ratings_user_y = neighbour_movies[neighbour_movies['movielensID'].isin(
+#                 current_user_ratings['movielensID'].tolist())]['rating']
 #
-#         # print users_that_rated_both_movies
+#             try:
+#                 # similarity = cosine_similarity(intersection['rating_x'].reshape(1, -1),
+#                 #                                intersection['rating_y'].reshape(1, -1))[0][0]
+#                 similarity = cosine_similarity(ratings_user_x.reshape(1, -1), ratings_user_y.reshape(1, -1))[0][0]
+#             except ValueError:
+#                 similarity = 0
 #
-#         user_ratings = [(_all_ratings[(_all_ratings['movielensID'] == target_movie_movielens_id)
-#                                       & (_all_ratings['userID'] == user)]['rating'].iloc[0],
-#                          _all_ratings[(_all_ratings['movielensID'] == neighbour_movie_id)
-#                                       & (_all_ratings['userID'] == user)]['rating'].iloc[0])
-#                         for user in users_that_rated_both_movies]
+#             denominator += abs(similarity)
+#             neighbour_movie_rating = neighbour_movies[neighbour_movies['movielensID'] == movie[2]]['rating'].iloc[0]
+#             numerator += similarity * (neighbour_movie_rating - neighbour_movies['rating'].mean())
 #
-#         if len(user_ratings) > 0:
-#             unpacked_ratings = zip(*user_ratings)
-#             ratings_x, ratings_y = np.array(unpacked_ratings[0]), np.array(unpacked_ratings[1])
-#             sim = cosine_similarity(ratings_y.reshape(1, -1), ratings_x.reshape(1, -1))[0][0]
+#         try:
+#             prediction_user_item = user_average + numerator / denominator
+#         except ZeroDivisionError:
+#             continue
 #
-#         similarities.append((neighbour_movie_id, sim))
+#         predictions.append((movie[2], prediction_user_item, movie[0]))
 #
-#     return sort_desc(similarities)[:30]
+#     return predictions
 
 
 def get_item_collaborative_predictions(target_user_id, user_baseline, movies_to_predict, _all_ratings, _global_average):
 
     predictions = []
+    _all_ratings_by_user = _all_ratings[_all_ratings['userID'] == target_user_id]
 
     for trailer_id, rating, target_movielens_id in movies_to_predict:
 
         # BEGIN: Calculate user-item baseline
-        item_ratings = _all_ratings[_all_ratings['movielensID'] == target_movielens_id]['rating']
-        item_baseline = sum([_rating - user_baseline - _global_average for _rating in item_ratings])/len(item_ratings)
+        item_ratings = _all_ratings[_all_ratings['movielensID'] == target_movielens_id]
+        item_baseline = sum([_rating - user_baseline - _global_average for _rating in item_ratings['rating']])/len(item_ratings)
         user_item_baseline = _global_average + user_baseline + item_baseline
         # END: Calculate user-item baseline
 
         similarities = []
-        other_items = _all_ratings[(_all_ratings['userID'] == target_user_id)
-                                   & (_all_ratings['movielensID'] != target_movielens_id)]
         # BEGIN: Find the most similar items that the user rated
-        for key, movie in other_items.iterrows():
+        for key, movie in _all_ratings_by_user.iterrows():
+
+            if movie['movielensID'] == target_movielens_id:
+                continue
+
             join_ratings = pd.merge(_all_ratings[_all_ratings['movielensID'] == movie['movielensID']],
-                                    _all_ratings[_all_ratings['movielensID'] == target_movielens_id], on='userID')
+                                    item_ratings, on='userID')
             sim = 0
             if len(join_ratings) > 0:
                 ratings_x, ratings_y = (np.array(join_ratings['rating_x']), np.array(join_ratings['rating_y']))
@@ -166,9 +131,11 @@ def get_item_collaborative_predictions(target_user_id, user_baseline, movies_to_
         # END: Find the most similar items that the user rated
 
         # BEGIN: Predict user rating
-        p_ui_numerator = sum([s_ij * (_all_ratings[(_all_ratings['userID'] == target_user_id) &
-                                                   (_all_ratings['movielensID'] == movie_id)]['rating'].iloc[0] -
-                                      user_item_baseline) for movie_id, s_ij in top_neighbours])
+        # p_ui_numerator = sum([s_ij * (_all_ratings[(_all_ratings['userID'] == target_user_id) &
+        #                                            (_all_ratings['movielensID'] == movie_id)]['rating'].iloc[0] -
+        #                               user_item_baseline) for movie_id, s_ij in top_neighbours])
+        p_ui_numerator = sum([s_ij * (_all_ratings_by_user[_all_ratings_by_user['movielensID'] == movie_id]['rating'].iloc[0] - user_item_baseline)
+                             for movie_id, s_ij in top_neighbours])
         p_ui_denominator = sum([abs(s_ij) for n, s_ij in top_neighbours])
         p_ui = p_ui_numerator / p_ui_denominator + user_item_baseline
         # print p_ui, "is the current_prediction"
@@ -186,11 +153,7 @@ def build_user_profile(user_profiles, convnet_similarity_matrix):
     _ratings_by_movie = read_movie_general_baseline()
 
     conn = sqlite3.connect('content/database.db')
-    # all_ratings = pd.read_sql('select userID, movielensID, rating from movielens_rating', conn, index_col='userID')
     _all_ratings = pd.read_sql('select userID, movielensID, rating from movielens_rating order by userid', conn)
-    # _all_movies = pd.read_sql('SELECT t.id, m.movielensid FROM trailers t '
-    #                           'JOIN movielens_movie m ON m.imdbidtt = t.imdbid WHERE t.best_file = 1 ORDER BY t.id',
-    #                           conn)
     conn.close()
 
     print "all ratings read"
@@ -221,28 +184,3 @@ def build_user_profile(user_profiles, convnet_similarity_matrix):
                                      }
 
     return new_user_profiles
-
-
-# def get_all_predictions(store_result, userid, profile, all_ratings, convnet_similarity_matrix, _ratings_by_movie, _global_average):
-#
-#     print userid, "userid"
-#
-#     movies_set = profile['relevant_set'] + profile['irrelevant_set'] + profile['random_set']
-#
-#     if type(movies_set) == float:
-#         return
-#
-#     predictions_item_collaborative = get_item_collaborative_predictions(userid, 0, movies_set, all_ratings)
-#
-#     predictions_user_collaborative = get_user_collaborative_predictions(userid, profile['avg'], movies_set, all_ratings)
-#
-#     predictions_content_based = get_content_based_predictions(profile['user_baseline'].iloc[0], movies_set, profile['all_movies'],
-#                                                               convnet_similarity_matrix, _ratings_by_movie, _global_average)
-#
-#     store_result[userid] = {'datasets': {'relevant_movies': profile['relevant_set'],
-#                                          'irrelevant_movies': profile['irrelevant_set']},
-#                                  'userid': userid,
-#                                  'predictions': {'deep': predictions_content_based,
-#                                                  'collaborative': predictions_user_collaborative}
-#                                  }
-

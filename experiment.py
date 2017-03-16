@@ -48,7 +48,7 @@ def experiment(N, user_profiles, convnet_similarity_matrix):
 # results = manager.dict()
 results = {}
 
-for index in range(1, 6):
+for index in range(1, 11):
     results[index] = experiment(index, new_user_profiles, convnet_similarity_matrix)
 
 # jobs = []
@@ -63,7 +63,7 @@ for index in range(1, 6):
 
 print results
 
-save_obj(results, 'results_2k')
+save_obj(results, 'results_150_users')
 
 end = time.time()
 print "Execution time", (end - start)

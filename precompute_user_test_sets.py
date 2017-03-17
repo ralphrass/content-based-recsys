@@ -3,10 +3,13 @@ import pandas as pd
 import time
 import random
 from recommender import read_user_general_baseline
+from utils.utils import extract_features
 
 start = time.time()
 
 conn = sqlite3.connect('content/database.db')
+
+_deep_features_bof = extract_features('content/bof_128.bin')
 
 sql_users = "SELECT r.userid, t.id, r.rating, m.movielensid, mt.avgrating " \
             "FROM trailers t " \
@@ -48,24 +51,29 @@ for userid, trailerid, rating, movielensid, avgrating in _all_users_with_movies:
         try:
             user_baseline = _general_baseline[_general_baseline['userID'] == userid]['average'] - _global_average
             users_dict[userid] = {'avg': avgrating, 'user_baseline': user_baseline, 'relevant_set': [],
-                                  'irrelevant_set': [], 'all_movies': [], 'random_set': []}
+                                  'irrelevant_set': [], 'all_movies': [], 'random_set': [],
+                                  'relevant_bof': [], 'irrelevant_bof': []}
         except:
             print userid, "failed"
 
     if rating >= 4:
         users_dict[userid]['relevant_set'].append((trailerid, rating, movielensid))
+        users_dict[userid]['relevant_bof'].append(_deep_features_bof[trailerid])
     elif rating < 3:
         users_dict[userid]['irrelevant_set'].append((trailerid, rating, movielensid))
+        users_dict[userid]['irrelevant_bof'].append(_deep_features_bof[trailerid])
 
     users_dict[userid]['all_movies'].append((trailerid, rating, movielensid))
 
     count += 1
 
+count = 0
+
 for userid, profile in users_dict.iteritems():
 
     count += 1
     if count % 10000 == 0:
-        print count, "user-movies read"
+        print count, "random samples generated"
 
     all_movies_ids = [n[0] for n in users_dict[userid]['all_movies']]
     unrated_movies = [movie for movie in _all_movies if movie[0] not in all_movies_ids]
@@ -80,6 +88,6 @@ print user_movies_df.columns
 print user_movies_df.head()
 
 # user_movies_df.to_pickle('user_profiles_dataframe_1k.pkl')
-user_movies_df.to_pickle('user_profiles_dataframe.pkl')
+user_movies_df.to_pickle('user_profiles_dataframe_with_bof.pkl')
 
 print "it tok", time.time() - start, "seconds"

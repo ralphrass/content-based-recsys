@@ -2,6 +2,8 @@ import random, sqlite3
 import numpy as np
 from opening_feat import load_features
 import itertools as it
+import operator
+import pandas as pd
 from sklearn import preprocessing
 
 
@@ -11,6 +13,30 @@ def evaluate_average(sum, count):
     except ZeroDivisionError:
         return 0
     return Result
+
+
+def read_user_general_baseline():
+
+    conn = sqlite3.connect('content/database.db')
+
+    _ratings = pd.read_sql("SELECT userid, SUM(rating)/COUNT(rating) AS average "
+                           "FROM movielens_rating GROUP BY userid ORDER BY userid", conn, columns=['userID', 'average'])
+    conn.close()
+
+    return _ratings, _ratings['average'].mean()
+
+
+def read_movie_general_baseline():
+
+    conn = sqlite3.connect('content/database.db')
+
+    _ratings_by_movie = pd.read_sql("SELECT movielensid, SUM(rating)/COUNT(rating) AS average "
+                                    "FROM movielens_rating GROUP BY movielensid ORDER BY movielensid", conn,
+                                    columns=['average'], index_col='movielensID')
+
+    conn.close()
+
+    return _ratings_by_movie
 
 
 def select_random_users(conn, limit1, limit2):
@@ -113,3 +139,9 @@ def extract_features(deep_feautures='resnet_152_lstm_128.dct'):
     DEEP_FEATURES = {k: v for k, v in it.izip(DEEP_FEATURES.keys(), std)}
 
     return DEEP_FEATURES
+
+
+def sort_desc(list_to_sort, index=1, desc=True):
+
+    list_to_sort.sort(key=operator.itemgetter(index), reverse=desc)
+    return list_to_sort

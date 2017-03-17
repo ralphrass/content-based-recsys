@@ -21,17 +21,19 @@ user_distances = {}
 for user, profile in _user_profiles.iterrows():
 
     distances = []
-    user_bof = np.mean(np.array(profile['relevant_bof']), axis=0).reshape(1, -1)
+    try:
+        user_bof = np.mean(np.array(profile['relevant_bof']), axis=0).reshape(1, -1)
+    except:
+        continue
 
     for neighbour_user, neighbour_profile in _user_profiles.iterrows():
         if user == neighbour_user:
             continue
 
-        neighbour_user_bof = np.mean(np.array(neighbour_profile['relevant_bof']), axis=0).reshape(1, -1)
-
         try:
-            sim = cosine_similarity(user_bof, neighbour_user_bof)
-        except ValueError:
+            neighbour_user_bof = np.mean(np.array(neighbour_profile['relevant_bof']), axis=0).reshape(1, -1)
+            sim = cosine_similarity(user_bof, neighbour_user_bof)[0][0]
+        except:
             continue
 
         distances.append((neighbour_user, sim))
@@ -39,7 +41,7 @@ for user, profile in _user_profiles.iterrows():
     user_distances[user] = sort_desc(distances, True)
     break
 
-print user_distances
+print user_distances[1][:30]
 # for user_id, profile in _user_profiles.iterrows():
 #     print d
 #     break

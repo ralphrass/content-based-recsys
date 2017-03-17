@@ -37,8 +37,9 @@ for user, profile in _user_profiles.iterrows():
         distances.append((neighbour_user, sim))
 
     user_distances[user] = sort_desc(distances, True)
-    print user_distances[0]
     break
+
+print user_distances
 # for user_id, profile in _user_profiles.iterrows():
 #     print d
 #     break

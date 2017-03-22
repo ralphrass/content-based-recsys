@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 import time
 import random
+import numpy as np
 from recommender import read_user_general_baseline
 from utils.utils import extract_features
 
@@ -79,6 +80,9 @@ for userid, profile in users_dict.iteritems():
     unrated_movies = [movie for movie in _all_movies if movie[0] not in all_movies_ids]
     users_dict[userid]['random_set'] = random.sample(unrated_movies, 100)
 
+    users_dict[userid]['relevant_centroid'] = np.mean(np.array(users_dict[userid]['relevant_bof']), axis=0).reshape(1, -1)
+    users_dict[userid]['irrelevant_centroid'] = np.mean(np.array(users_dict[userid]['relevant_bof']), axis=0).reshape(1, -1)
+
 print "starting transformation..."
 
 # user_movies_df = pd.DataFrame(data=users_dict, columns=['avg', 'user_baseline', 'relevant_set', 'irrelevant_set',
@@ -88,6 +92,6 @@ print user_movies_df.columns
 print user_movies_df.head()
 
 # user_movies_df.to_pickle('user_profiles_dataframe_1k.pkl')
-user_movies_df.to_pickle('user_profiles_dataframe_with_bof.pkl')
+user_movies_df.to_pickle('user_profiles_dataframe_with_user_centroid.pkl')
 
 print "it tok", time.time() - start, "seconds"

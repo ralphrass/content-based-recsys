@@ -1,17 +1,14 @@
 import time
 import recommender, evaluation
-# from utils.utils import extract_features
 from utils.opening_feat import load_features, save_obj
 
 start = time.time()
 
-batch = 0
-print "batch", batch+1
-
 # 85040 is the full set size (4252 is 20 iterations)
 # users = select_random_users(conn, 100 * batch, 100)
 
-user_profiles = load_features('content/user_profiles_dataframe.pkl')
+# user_profiles = load_features('content/user_profiles_dataframe.pkl')
+user_profiles = load_features('content/user_profiles_dataframe_with_user_centroid.pkl')
 # user_profiles = user_profiles[:20]
 # print "AVG", user_profiles.iloc[7]['avg'], "."
 # DEEP_FEATURES_BOF = extract_features('content/bof_128.bin')
@@ -32,11 +29,16 @@ def experiment(N, user_profiles, convnet_similarity_matrix):
     # DEEP FEATURES - BOF
     dp, dr, dd, dm = evaluation.evaluate(user_profiles, N, 'deep', convnet_similarity_matrix)
 
+    # DEEP FEATURES - BOF
+    ucp, ucr, ucd, ucm = evaluation.evaluate(user_profiles, N, 'user-centroid', convnet_similarity_matrix)
+
     # Collaborative Filtering
     cp, cr, cd, cm = evaluation.evaluate(user_profiles, N, 'collaborative', convnet_similarity_matrix)
 
     return {'deep': {'precision': dp, 'recall': dr, 'diversity': dd, 'mae': dm},
-            'collaborative': {'precision': cp, 'recall': cr, 'diversity': cd, 'mae': cm}}
+            'user-centroid': {'precision': ucp, 'recall': ucr, 'diversity': ucd, 'mae': ucm},
+            'collaborative': {'precision': cp, 'recall': cr, 'diversity': cd, 'mae': cm}
+            }
 
 results = {}
 
@@ -45,7 +47,6 @@ for index in range(1, 11):
 
 print results
 
-save_obj(results, 'results_500_users')
-
+save_obj(results, 'results_1_users')
 end = time.time()
 print "Execution time", (end - start)

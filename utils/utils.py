@@ -29,11 +29,11 @@ def read_user_general_baseline():
 def read_movie_general_baseline():
 
     conn = sqlite3.connect('content/database.db')
-
-    _ratings_by_movie = pd.read_sql("SELECT movielensid, SUM(rating)/COUNT(rating) AS average "
-                                    "FROM movielens_rating GROUP BY movielensid ORDER BY movielensid", conn,
-                                    columns=['average'], index_col='movielensID')
-
+    _ratings_by_movie = pd.read_sql("SELECT t.id, SUM(rating)/COUNT(rating) AS average "
+                                    "FROM movielens_rating r "
+                                    "JOIN movielens_movie m on m.movielensid = r.movielensid "
+                                    "JOIN trailers t on t.imdbid = m.imdbidtt "
+                                    "GROUP BY t.id ORDER BY t.id", conn, columns=['average'], index_col='id')
     conn.close()
 
     return _ratings_by_movie
@@ -58,13 +58,13 @@ def get_random_movie_set(user):
 
     conn = sqlite3.connect('content/database.db')
 
-    sql = "SELECT t.id, 1, mm.movielensId " \
+    sql = "SELECT t.id, 1 " \
           "FROM movies m " \
           "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
           "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
           "WHERE EXISTS (SELECT movielensid FROM movielens_rating r WHERE r.movielensid = mm.movielensid) " \
           "EXCEPT " \
-          "SELECT t.id, 1, mm.movielensId " \
+          "SELECT t.id, 1 " \
           "FROM movies m " \
           "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
           "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
@@ -100,7 +100,7 @@ def get_user_training_test_movies(user):
 
     conn = sqlite3.connect('content/database.db')
 
-    sql = "SELECT t.id, r.rating, m.movielensid " \
+    sql = "SELECT t.id, r.rating " \
           "FROM trailers t " \
           "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
           "JOIN movielens_rating r ON r.movielensid = m.movielensid " \

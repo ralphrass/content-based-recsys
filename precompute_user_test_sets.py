@@ -12,7 +12,7 @@ conn = sqlite3.connect('content/database.db')
 
 _deep_features_bof = extract_features('content/bof_128.bin')
 
-sql_users = "SELECT r.userid, t.id, r.rating, m.movielensid, mt.avgrating " \
+sql_users = "SELECT r.userid, t.id, r.rating, mt.avgrating " \
             "FROM trailers t " \
             "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
             "JOIN movielens_rating r ON r.movielensid = m.movielensid " \
@@ -20,7 +20,7 @@ sql_users = "SELECT r.userid, t.id, r.rating, m.movielensid, mt.avgrating " \
             "WHERE t.best_file = 1 " \
             "ORDER BY r.userid, t.id"
 
-sql_all_movies = "SELECT t.id, 1, mm.movielensId " \
+sql_all_movies = "SELECT t.id, 1 " \
                   "FROM movies m " \
                   "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
                   "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
@@ -38,11 +38,12 @@ _all_movies = c.fetchall()
 _general_baseline, _global_average = read_user_general_baseline()
 
 users_dict = dict()
+users_bof_dict = dict()
 
 count = 1
 # current_user = 0
 # exit()
-for userid, trailerid, rating, movielensid, avgrating in _all_users_with_movies:
+for userid, trailerid, rating, avgrating in _all_users_with_movies:
 
     if count % 50000 == 0:
         print count, "user-movies read"
@@ -52,19 +53,19 @@ for userid, trailerid, rating, movielensid, avgrating in _all_users_with_movies:
         try:
             user_baseline = _general_baseline[_general_baseline['userID'] == userid]['average'] - _global_average
             users_dict[userid] = {'avg': avgrating, 'user_baseline': user_baseline, 'relevant_set': [],
-                                  'irrelevant_set': [], 'all_movies': [], 'random_set': [],
-                                  'relevant_bof': [], 'irrelevant_bof': []}
+                                  'irrelevant_set': [], 'all_movies': [], 'random_set': []}
+            users_bof_dict[userid] = {'relevant_bof': [], 'irrelevant_bof': []}
         except:
             print userid, "failed"
 
     if rating >= 4:
-        users_dict[userid]['relevant_set'].append((trailerid, rating, movielensid))
-        users_dict[userid]['relevant_bof'].append(_deep_features_bof[trailerid])
+        users_dict[userid]['relevant_set'].append((trailerid, rating))
+        users_bof_dict[userid]['relevant_bof'].append(_deep_features_bof[trailerid])
     elif rating < 3:
-        users_dict[userid]['irrelevant_set'].append((trailerid, rating, movielensid))
-        users_dict[userid]['irrelevant_bof'].append(_deep_features_bof[trailerid])
+        users_dict[userid]['irrelevant_set'].append((trailerid, rating))
+        users_bof_dict[userid]['relevant_bof'].append(_deep_features_bof[trailerid])
 
-    users_dict[userid]['all_movies'].append((trailerid, rating, movielensid))
+    users_dict[userid]['all_movies'].append((trailerid, rating))
 
     count += 1
 
@@ -80,8 +81,9 @@ for userid, profile in users_dict.iteritems():
     unrated_movies = [movie for movie in _all_movies if movie[0] not in all_movies_ids]
     users_dict[userid]['random_set'] = random.sample(unrated_movies, 100)
 
-    users_dict[userid]['relevant_centroid'] = np.mean(np.array(users_dict[userid]['relevant_bof']), axis=0).reshape(1, -1)
-    users_dict[userid]['irrelevant_centroid'] = np.mean(np.array(users_dict[userid]['relevant_bof']), axis=0).reshape(1, -1)
+    # user centroids
+    users_dict[userid]['relevant_centroid'] = np.mean(np.array(users_bof_dict[userid]['relevant_bof']), axis=0).reshape(1, -1)
+    users_dict[userid]['irrelevant_centroid'] = np.mean(np.array(users_bof_dict[userid]['irrelevant_bof']), axis=0).reshape(1, -1)
 
 print "starting transformation..."
 

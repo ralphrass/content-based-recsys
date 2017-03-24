@@ -21,17 +21,17 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
         # exit()
 
         topN = [x[0] for x in full_prediction_set[:_n]]  # topN list composed by movies IDs
-        rec_set = [x[2] for x in full_prediction_set[:_n]]  # topN list composed by trailers IDs
+        # rec_set = [x[0] for x in full_prediction_set[:_n]]  # topN list composed by trailers IDs
 
         # how many items of the relevant set are retrieved (top-N)?
-        true_positives = float(sum([1 if movie[2] in topN else 0 for movie in relevant_set]))
+        true_positives = float(sum([1 if movie[0] in topN else 0 for movie in relevant_set]))
         # true_negatives = float(sum([1 if movie[2] not in topN else 0 for movie in irrelevant_set]))
 
         false_negatives = float(len(relevant_set) - true_positives)
         # false_positives = float(len(irrelevant_set) - true_negatives)
 
         if _n > 1:  # and sim_matrix is not None:  # content-based filtering
-            diversity = sum([sim_matrix[i][j] for i in rec_set for j in rec_set if i != j]) / 2
+            diversity = sum([sim_matrix[i][j] for i in topN for j in topN if i != j]) / 2
             sum_diversity += diversity
         # else:  # collaborative filtering
 
@@ -51,7 +51,7 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
 
         try:
             real_ratings = [movie[1] for movie in relevant_set]
-            predicted_ratings = [movie[1] for movie in full_prediction_set if movie[0] in [real_movie[2] for real_movie
+            predicted_ratings = [movie[1] for movie in full_prediction_set if movie[0] in [real_movie[0] for real_movie
                                                                                            in relevant_set]]
             mae = mean_absolute_error(real_ratings, predicted_ratings)
             sum_mae += mae
@@ -62,3 +62,26 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
     return evaluate_average(sum_precision, size), evaluate_average(sum_recall, size), evaluate_average(
         sum_diversity, size), evaluate_average(sum_mae, size)
 
+
+def evaluate_precision_recall(relevant_set, full_prediction_set, _n):
+    topN = [x[0] for x in full_prediction_set[:_n]]  # topN list composed by movies IDs
+    true_positives = float(sum([1 if movie[0] in topN else 0 for movie in relevant_set]))
+    false_negatives = float(len(relevant_set) - true_positives)
+    precision = true_positives / float(_n)
+    recall = true_positives / (true_positives + false_negatives)
+
+    return precision, recall
+
+
+def evaluate_diversity(sim_matrix, _n, topN):
+    if _n > 1:  # and sim_matrix is not None:  # content-based filtering
+        diversity = sum([sim_matrix[i][j] for i in topN for j in topN if i != j]) / 2
+    return diversity
+
+
+def evaluate_mae(relevant_set, full_prediction_set):
+    real_ratings = [movie[1] for movie in relevant_set]
+    predicted_ratings = [movie[1] for movie in full_prediction_set if movie[0] in [real_movie[0] for real_movie
+                                                                                   in relevant_set]]
+    mae = mean_absolute_error(real_ratings, predicted_ratings)
+    return mae

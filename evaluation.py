@@ -43,7 +43,7 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
         try:
             recall = true_positives / (true_positives + false_negatives)
         except ZeroDivisionError:
-            print "failed to evaluate", true_positives, "TP,", false_negatives, "FN, for user", user
+            # print "failed to evaluate", true_positives, "TP,", false_negatives, "FN, for user", user
             recall = 0
 
         sum_precision += precision

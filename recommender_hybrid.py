@@ -33,3 +33,16 @@ def get_mixing_hybrid_recommendations(predictions_item_collaborative, prediction
             predictions_mixing_hybrid.append(item)
 
     return predictions_mixing_hybrid
+
+
+def get_hybrid_recommendations(predictions, movie_set):
+
+    hybrid_predictions = []
+    _num_vectors = 2
+
+    for trailer_id, ratings in movie_set:
+
+        sum_ratings = sum([p_ui for tid, p_ui in predictions if tid == trailer_id])
+        hybrid_predictions.append((trailer_id, sum_ratings / _num_vectors))
+
+    return hybrid_predictions

@@ -47,7 +47,7 @@ for user in users:
 
         if rating.empty:
             # rating = _3112_user_ratings[_3112_user_ratings['id'] == movie]['rating'].mean()
-            rating = 0
+            rating = np.nan
             user_ratings.append(rating)
         else:
             user_ratings.append(rating.iloc[0])
@@ -56,8 +56,10 @@ for user in users:
 
 # print full_ratings
 # exit()
-scaled = preprocessing.scale(np.matrix(full_ratings))
+# scaled = preprocessing.scale(np.matrix(full_ratings))
+full_matrix = np.nan_to_num(np.array(full_ratings))
+normalized = preprocessing.normalize(full_matrix, norm='l2')
 
 # print np.matrix(full_ratings)
 # np.savetxt('full_matrix_for_svd_item_mean_imputation', np.matrix(full_ratings))
-np.savetxt('full_matrix_for_svd_zero_mean_imputation', scaled)
+np.savetxt('full_matrix_for_svd_normalized', normalized)

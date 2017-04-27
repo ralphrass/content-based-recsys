@@ -29,6 +29,8 @@ user_user_similarities = {}
 
 for user in users:
 
+    print user, "current user"
+
     user_user_similarities[user] = []
 
     target_user_ratings = _all_ratings[_all_ratings['userID'] == user]
@@ -42,12 +44,7 @@ for user in users:
         try:
             neighbor_average = user_profiles.loc[neighbor]['avg']
         except IndexError as e:
-            print e
-            print "neighbor", neighbor, "failed"
-
-        # for key, item in intersect.iterrows():
-        #     print item['rating_x']
-        # break
+            print e, "neighbor", neighbor, "failed"
 
         try:
             intersect = pd.merge(_all_ratings[_all_ratings['userID'] == neighbor], target_user_ratings, on='id')
@@ -56,23 +53,19 @@ for user in users:
                 sim = 0
             else:
                 sim = pearsonr(intersect['rating_x'], intersect['rating_y'])[0]
-                ssim = sum([(item['rating_x'] - neighbor_average) * (item['rating_y'] - target_user_average)
-                            for k, item in intersect.iterrows()]) / (
-                    math.sqrt(sum([(item['rating_x'] - neighbor_average) ** 2 for k, item in intersect.iterrows()])) *
-                    math.sqrt(sum([(item['rating_y'] - target_user_average) ** 2 for k, item in intersect.iterrows()])))
+                # ssim = sum([(item['rating_x'] - neighbor_average) * (item['rating_y'] - target_user_average)
+                #             for k, item in intersect.iterrows()]) / (
+                #     math.sqrt(sum([(item['rating_x'] - neighbor_average) ** 2 for k, item in intersect.iterrows()])) *
+                #     math.sqrt(sum([(item['rating_y'] - target_user_average) ** 2 for k, item in intersect.iterrows()])))
         except ValueError:
             sim = 0
 
         if not (sim > 0 or sim < 0):
             sim = 0
-        # print neighbor, "neighbor"
-        # print ssim, "ssim"
-        # print sim, "sim", type(sim), "is the type", bool(sim>0 or sim < 0), "is the boolean value"
-        # print "pearson", type(sim[0])
 
         user_user_similarities[user].append((neighbor, sim))
 
     user_user_similarities[user] = sort_desc(user_user_similarities[user])
-    break
+    # break
 
-print user_user_similarities
+save_obj(user_user_similarities, 'user_user_collaborative_similarities')

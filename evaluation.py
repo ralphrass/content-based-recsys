@@ -31,7 +31,10 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
         # false_positives = float(len(irrelevant_set) - true_negatives)
 
         if _n > 1:  # and sim_matrix is not None:  # content-based filtering
-            diversity = sum([sim_matrix[i][j] for i in topN for j in topN if i != j]) / 2
+            try:
+                diversity = sum([sim_matrix[i][j] for i in topN for j in topN if i != j]) / 2
+            except KeyError:
+                diversity = 0
             sum_diversity += diversity
         # else:  # collaborative filtering
 

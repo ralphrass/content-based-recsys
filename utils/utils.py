@@ -132,13 +132,13 @@ def get_similarity_matrices():
 # Normalize the matrix
 def extract_features(deep_feautures='resnet_152_lstm_128.dct'):
 
-    DEEP_FEATURES = load_features(deep_feautures)
-    arr = np.array([x[1] for x in DEEP_FEATURES.iteritems()])
+    _deep_features = load_features(deep_feautures)
+    arr = np.array([x[1] for x in _deep_features.iteritems()])
     scaler = preprocessing.StandardScaler().fit(arr)
     std = scaler.transform(arr)
-    DEEP_FEATURES = {k: v for k, v in it.izip(DEEP_FEATURES.keys(), std)}
+    _deep_features = {k: v for k, v in it.izip(_deep_features.keys(), std)}
 
-    return DEEP_FEATURES
+    return _deep_features
 
 
 def sort_desc(list_to_sort, index=1, desc=True):

@@ -47,7 +47,7 @@ def map_movie_to_index():
 
 def load_svd():
     _k = 20
-    matrix = np.loadtxt('content/full_matrix_for_svd_item_mean_imputation')
+    matrix = np.loadtxt('content/full_matrix_for_svd_normalized')
     u, s, v = np.linalg.svd(matrix)
 
     reduced_u = u[:, :_k]  # 3112 x 15

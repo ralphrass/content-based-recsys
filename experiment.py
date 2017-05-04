@@ -21,7 +21,8 @@ convnet_sim_matrix = load_features('content/movie_cosine_similarities_deep.bin')
 low_level_sim_matrix = load_features('content/movie_cosine_similarities_low_level.bin')
 # _user_bof_sim_matrix = load_features('content/3112_user_user_bof_similarities.pkl')
 _user_user_collaborative_matrix = load_features('content/user_user_collaborative_similarities.pkl')
-_item_item_collaborative_matrix = load_features('content/item_item_collaborative_similarities.pkl')
+# _item_item_collaborative_matrix = load_features('content/item_item_collaborative_similarities.pkl')
+_item_item_collaborative_matrix = None
 
 start = time.time()
 
@@ -35,32 +36,33 @@ print (time.time() - start), "seconds"
 def experiment(N, user_profiles, convnet_similarity_matrix, low_level_similarity_matrix):
 
     # DEEP FEATURES - BOF
-    dp, dr, dd, dm = evaluation.evaluate(user_profiles, N, 'deep', convnet_similarity_matrix)
+    dp, dr, dd, dm, drs = evaluation.evaluate(user_profiles, N, 'deep', convnet_similarity_matrix)
     # Low Level
-    llp, llr, lld, llm = evaluation.evaluate(user_profiles, N, 'low-level', low_level_similarity_matrix)
+    # llp, llr, lld, llm = evaluation.evaluate(user_profiles, N, 'low-level', low_level_similarity_matrix)
+    llp, llr, lld, llm, llrs = evaluation.evaluate(user_profiles, N, 'low-level', convnet_similarity_matrix)
     # User BoF
     # ubp, ubr, ubd, ubm = evaluation.evaluate(user_profiles, N, 'user-bof', convnet_similarity_matrix)
 
     # Collaborative Filtering
-    cp, cr, cd, cm = evaluation.evaluate(user_profiles, N, 'user-collaborative', convnet_similarity_matrix)
+    cp, cr, cd, cm, crs = evaluation.evaluate(user_profiles, N, 'user-collaborative', convnet_similarity_matrix)
     # Collaborative Filtering - Item
-    cip, cir, cid, cim = evaluation.evaluate(user_profiles, N, 'item-collaborative', convnet_similarity_matrix)
+    # cip, cir, cid, cim = evaluation.evaluate(user_profiles, N, 'item-collaborative', convnet_similarity_matrix)
     # Hybrid
-    # hp, hr, hd, hm = evaluation.evaluate(user_profiles, N, 'hybrid', convnet_similarity_matrix)
+    hp, hr, hd, hm, hrs = evaluation.evaluate(user_profiles, N, 'hybrid', convnet_similarity_matrix)
 
     # SVD
-    svdp, svdr, svdd, svdm = evaluation.evaluate(user_profiles, N, 'svd', convnet_similarity_matrix)
+    # svdp, svdr, svdd, svdm = evaluation.evaluate(user_profiles, N, 'svd', convnet_similarity_matrix)
 
     # lrp, lrr, lrd, lrm = evaluation.evaluate(user_profiles, N, 'linear-regression', convnet_similarity_matrix)
 
     return {
-            'deep': {'precision': dp, 'recall': dr, 'diversity': dd, 'mae': dm},
-            'low-level': {'precision': llp, 'recall': llr, 'diversity': lld, 'mae': llm},
+            'deep': {'precision': dp, 'recall': dr, 'diversity': dd, 'mae': dm, 'rankscore': drs},
+            'low-level': {'precision': llp, 'recall': llr, 'diversity': lld, 'mae': llm, 'rankscore': llrs},
             # 'user-bof': {'precision': ubp, 'recall': ubr, 'diversity': ubd, 'mae': ubm},
-            'user-collaborative': {'precision': cp, 'recall': cr, 'diversity': cd, 'mae': cm},
-            'item-collaborative': {'precision': cip, 'recall': cir, 'diversity': cid, 'mae': cim},
-            # 'hybrid': {'precision': hp, 'recall': hr, 'diversity': hd, 'mae': hm},
-            'svd': {'precision': svdp, 'recall': svdr, 'diversity': svdd, 'mae': svdm},
+            'user-collaborative': {'precision': cp, 'recall': cr, 'diversity': cd, 'mae': cm, 'rankscore': crs},
+            # 'item-collaborative': {'precision': cip, 'recall': cir, 'diversity': cid, 'mae': cim},
+            'hybrid': {'precision': hp, 'recall': hr, 'diversity': hd, 'mae': hm, 'rankscore': hrs},
+            # 'svd': {'precision': svdp, 'recall': svdr, 'diversity': svdd, 'mae': svdm},
             # 'linear-regression': {'precision': lrp, 'recall': lrr, 'diversity': lrd, 'mae': lrm}
             }
 

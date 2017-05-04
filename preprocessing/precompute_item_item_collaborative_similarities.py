@@ -4,8 +4,8 @@ from sklearn.metrics.pairwise import cosine_similarity
 from utils.utils import sort_desc
 from utils.opening_feat import save_obj, load_features
 
-# df = load_features('/home/ralph/Dev/content-based-recsys/content/item_item_collaborative_similarities.pkl')
-# print len(df)
+# df = load_features('/home/ralph/Dev/content-based-recsys/item_item_collaborative_similarities.pkl')
+# print df
 # exit()
 
 
@@ -14,6 +14,7 @@ _all_ratings = pd.read_sql('select userID, t.id, rating from movielens_rating r 
                            'join movielens_movie m on m.movielensid = r.movielensid '
                            'join trailers t on t.imdbid = m.imdbidtt '
                            'where t.best_file = 1 '
+                           'and userid < 5000 '
                            'order by t.id', conn)
 
 movies = _all_ratings['id'].unique()
@@ -35,7 +36,8 @@ for movie in movies:
 
         if len(intersect) > 4:
             try:
-                sim = cosine_similarity(intersect['rating_x'].reshape(1, -1), intersect['rating_y'].reshape(1, -1))
+                # sim = cosine_similarity(intersect['rating_x'].reshape(1, -1), intersect['rating_y'].reshape(1, -1))
+                sim = cosine_similarity([intersect['rating_x']], [intersect['rating_y']])
                 movie_similarity[movie].append((neighbor, sim[0][0]))
             except ValueError:
                 continue

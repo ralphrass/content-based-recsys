@@ -4,7 +4,9 @@ from sklearn.metrics import mean_absolute_error
 
 def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
 
-    sum_recall, sum_precision, sum_false_positive_rate, sum_diversity, sum_mae = 0, 0, 0, 0, 0
+    sum_recall, sum_precision, sum_false_positive_rate, sum_diversity, sum_mae, sum_rank_score = 0, 0, 0, 0, 0, 0
+
+    _alpha = 10
 
     # print feature_vector_name
 
@@ -22,6 +24,22 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
 
         topN = [x[0] for x in full_prediction_set[:_n]]  # topN list composed by movies IDs
         # rec_set = [x[0] for x in full_prediction_set[:_n]]  # topN list composed by trailers IDs
+
+        # this is for rank score.
+        index_positions = [topN.index(rec[0]) for rec in relevant_set if rec[0] in topN]
+
+        rank_score = sum([1/(2**(i/_alpha)) for i in index_positions])
+        max_score_range = range(0, len(index_positions))
+        max_rank_score = sum([1/(2**(i/_alpha)) for i in max_score_range])
+
+        normalized_rank_score = rank_score / max_rank_score
+        sum_rank_score += normalized_rank_score
+
+
+        # print full_prediction_set
+        # print relevant_set
+        # print topN
+        # print sorted(index_positions)
 
         # how many items of the relevant set are retrieved (top-N)?
         true_positives = float(sum([1 if movie[0] in topN else 0 for movie in relevant_set]))
@@ -63,7 +81,7 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
 
     size = len(user_profiles)
     return evaluate_average(sum_precision, size), evaluate_average(sum_recall, size), evaluate_average(
-        sum_diversity, size), evaluate_average(sum_mae, size)
+        sum_diversity, size), evaluate_average(sum_mae, size), evaluate_average(sum_rank_score, size)
 
 
 def evaluate_precision_recall(relevant_set, full_prediction_set, _n):
@@ -88,3 +106,5 @@ def evaluate_mae(relevant_set, full_prediction_set):
                                                                                    in relevant_set]]
     mae = mean_absolute_error(real_ratings, predicted_ratings)
     return mae
+
+# def evaluate_rankscore():

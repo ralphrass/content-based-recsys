@@ -94,50 +94,44 @@ def get_user_collaborative_predictions_precomputed_similarities(movies_to_predic
 def get_item_collaborative_predictions_precomputed_similarities(movies_to_predict, _all_ratings, _target_user_id,
                                                                 _item_item_sim_matrix, user_baseline,
                                                                 _ratings_by_movie, _global_average):
-
     predictions = []
     _limit_top_neighbours_to = 50
-
     # target_user_ratings = _all_ratings[_all_ratings['userID'] == _target_user_id]
 
     for trailer_id, rating in movies_to_predict:
 
+        # print "Trailer id is", trailer_id
         try:
             _all_sim_items = _item_item_sim_matrix[trailer_id]
-            _allowed_sim_items = _all_sim_items[:_limit_top_neighbours_to]
+
+            # print "All sims are", _all_sim_items
+            # break
+            # _allowed_sim_items = _all_sim_items[:_limit_top_neighbours_to]
+            allowed_sim_items = []
+
+            for item in _all_sim_items:
+
+                rating = _all_ratings[(_all_ratings['userID'] == _target_user_id) &
+                                      (_all_ratings['id'] == item[0])]['rating']
+                try:  # the current user rated this item
+                    rating = float(rating)
+                    allowed_sim_items.append((item[1], rating))
+                except TypeError:
+                    continue
+
+                if len(allowed_sim_items) == _limit_top_neighbours_to:
+                    break
+
+            # print "Allowed:", allowed_sim_items
+            # b_ui = get_item_baseline(user_baseline, trailer_id, _ratings_by_movie, _global_average)
+
             try:
-                p_ui = sum([sim * _all_ratings[(_all_ratings['id'] == item) &
-                                               (_all_ratings['userID'] == _target_user_id)]['rating'].iloc[0]
-                            for item, sim in _allowed_sim_items]) / sum([abs(sim) for item, sim in _allowed_sim_items])
+                p_ui = (sum([sim * rating for sim, rating in allowed_sim_items]) /
+                       sum([abs(sim) for sim, rating in allowed_sim_items]))
             except ZeroDivisionError:
                 p_ui = 0
         except KeyError:
             p_ui = 0
-
-        # try:
-        #     top_neighbors = [(neighbor_movie_id, sim) for neighbor_movie_id, sim in _item_item_sim_matrix[trailer_id]
-        #                      if neighbor_movie_id in set(target_user_ratings['id'])]
-        # except KeyError:
-        #     pass
-        #
-        # top_n = sort_desc(top_neighbors)[:_limit_top_neighbours_to]
-        #
-        # numerator, denominator = (0, 0)
-        #
-        # for movie_id, sim in top_n:
-        #     item_baseline = get_item_baseline(user_baseline, trailer_id, _ratings_by_movie, _global_average)
-        #     user_item_baseline = (_avg_ratings + user_baseline + item_baseline)
-        #
-        #     neighbor_rating = _all_ratings[(_all_ratings['id'] == movie_id) &
-        #                                    (_all_ratings['userID'] == _target_user_id)]['rating'].iloc[0]
-        #     numerator += sim * (neighbor_rating - user_item_baseline)
-        #     denominator += abs(sim)
-        #     # numerator = sum([sim * (neighbor_rating - user_item_baseline) for n, sim in top_n])
-        #     # denominator = sum(abs(sim))
-        # try:
-        #     p_ui = numerator / denominator + user_item_baseline
-        # except ZeroDivisionError:
-        #     p_ui = 0
 
         predictions.append((trailer_id, p_ui))
 

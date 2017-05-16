@@ -138,41 +138,40 @@ def get_item_collaborative_predictions_precomputed_similarities(movies_to_predic
     return sort_desc(predictions)
 
 
+def get_item_collaborative_predictions(movies_to_predict, _all_ratings, _target_user_id):
 
-# def get_item_collaborative_predictions(movies_to_predict, _all_ratings, _target_user_id):
-#
-#     predictions = []
-#     _limit_top_neighbours_to = 20
-#
-#     target_user_ratings = _all_ratings[_all_ratings['userID'] == _target_user_id]
-#
-#     for trailer_id, rating in movies_to_predict:
-#
-#         top_neighbours = []
-#         # find most similar movies
-#         for rated_movie in target_user_ratings['id']:
-#
-#             intersect = pd.merge(_all_ratings[_all_ratings['id'] == rated_movie],
-#                                  _all_ratings[_all_ratings['id'] == trailer_id], on='userID')
-#             try:
-#                 sim = cosine_similarity(intersect['rating_x'].reshape(1, -1), intersect['rating_y'].reshape(1, -1))
-#                 top_neighbours.append((rated_movie, sim[0][0], intersect))
-#             except ValueError:
-#                 continue
-#         top_n = sort_desc(top_neighbours)[:_limit_top_neighbours_to]
-#
-#         numerator, denominator = (0, 0)
-#         for neighbour, sim, intersect in top_n:
-#             user_rating = _all_ratings[(_all_ratings['id'] == neighbour) & (_all_ratings['userID'] == _target_user_id)]['rating'].iloc[0]
-#             numerator += sim * user_rating
-#             denominator += abs(sim)
-#
-#         try:
-#             p_ui = numerator / denominator
-#         except ZeroDivisionError:
-#             p_ui = 0
-#
-#         predictions.append((trailer_id, p_ui))
-#
-#     return sort_desc(predictions)
+    predictions = []
+    _limit_top_neighbours_to = 20
+
+    target_user_ratings = _all_ratings[_all_ratings['userID'] == _target_user_id]
+
+    for trailer_id, rating in movies_to_predict:
+
+        top_neighbours = []
+        # find most similar movies
+        for rated_movie in target_user_ratings['id']:
+
+            intersect = pd.merge(_all_ratings[_all_ratings['id'] == rated_movie],
+                                 _all_ratings[_all_ratings['id'] == trailer_id], on='userID')
+            try:
+                sim = cosine_similarity(intersect['rating_x'].reshape(1, -1), intersect['rating_y'].reshape(1, -1))
+                top_neighbours.append((rated_movie, sim[0][0], intersect))
+            except ValueError:
+                continue
+        top_n = sort_desc(top_neighbours)[:_limit_top_neighbours_to]
+
+        numerator, denominator = (0, 0)
+        for neighbour, sim, intersect in top_n:
+            user_rating = _all_ratings[(_all_ratings['id'] == neighbour) & (_all_ratings['userID'] == _target_user_id)]['rating'].iloc[0]
+            numerator += sim * user_rating
+            denominator += abs(sim)
+
+        try:
+            p_ui = numerator / denominator
+        except ZeroDivisionError:
+            p_ui = 0
+
+        predictions.append((trailer_id, p_ui))
+
+    return sort_desc(predictions)
 

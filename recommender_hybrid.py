@@ -1,3 +1,5 @@
+from utils.utils import sort_desc
+
 
 def get_weighted_hybrid_recommendations(relevant_centroid, irrelevant_centroid, predictions_content_based_user_centroid, predictions_item_collaborative):
 
@@ -35,7 +37,7 @@ def get_mixing_hybrid_recommendations(predictions_item_collaborative, prediction
     return predictions_mixing_hybrid
 
 
-def get_hybrid_recommendations(predictions, movie_set):
+def get_weighted_hybrid_recommendations(predictions, movie_set):
 
     hybrid_predictions = []
     _num_vectors = 2
@@ -45,4 +47,4 @@ def get_hybrid_recommendations(predictions, movie_set):
         sum_ratings = sum([p_ui for tid, p_ui in predictions if tid == trailer_id])
         hybrid_predictions.append((trailer_id, sum_ratings / _num_vectors))
 
-    return hybrid_predictions
+    return sort_desc(hybrid_predictions)

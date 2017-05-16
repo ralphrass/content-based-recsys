@@ -4,7 +4,7 @@ from sklearn.metrics import mean_absolute_error
 
 def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
 
-    sum_recall, sum_precision, sum_false_positive_rate, sum_diversity, sum_mae, sum_rank_score = 0, 0, 0, 0, 0, 0
+    sum_recall, sum_precision, sum_false_positive_rate, sum_diversity, sum_mae, sum_rank_score, sum_f1 = 0, 0, 0, 0, 0, 0, 0
 
     _alpha = 10
 
@@ -32,9 +32,12 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
         max_score_range = range(0, len(index_positions))
         max_rank_score = sum([1/(2**(i/_alpha)) for i in max_score_range])
 
-        normalized_rank_score = rank_score / max_rank_score
-        sum_rank_score += normalized_rank_score
+        try:
+            normalized_rank_score = rank_score / max_rank_score
+        except ZeroDivisionError:
+            normalized_rank_score = 0
 
+        sum_rank_score += normalized_rank_score
 
         # print full_prediction_set
         # print relevant_set
@@ -71,6 +74,11 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
         sum_recall += recall
 
         try:
+            sum_f1 += (2 * precision * recall) / (precision + recall)
+        except ZeroDivisionError:
+            pass
+
+        try:
             real_ratings = [movie[1] for movie in relevant_set]
             predicted_ratings = [movie[1] for movie in full_prediction_set if movie[0] in [real_movie[0] for real_movie
                                                                                            in relevant_set]]
@@ -81,7 +89,8 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
 
     size = len(user_profiles)
     return evaluate_average(sum_precision, size), evaluate_average(sum_recall, size), evaluate_average(
-        sum_diversity, size), evaluate_average(sum_mae, size), evaluate_average(sum_rank_score, size)
+        sum_diversity, size), evaluate_average(sum_mae, size), evaluate_average(sum_rank_score, size), \
+           evaluate_average(sum_f1, size)
 
 
 def evaluate_precision_recall(relevant_set, full_prediction_set, _n):

@@ -7,9 +7,8 @@ from utils.utils import read_user_general_baseline, read_movie_general_baseline
 import pandas as pd
 from multiprocessing import Process, Manager
 from recommender_content_based import get_content_based_predictions, get_content_based_user_bof_predictions
-from recommender_collaborative import get_user_collaborative_predictions_precomputed_similarities, \
-    get_item_collaborative_predictions_precomputed_similarities
-from recommender_hybrid import get_hybrid_recommendations
+from recommender_collaborative import get_user_collaborative_predictions_precomputed_similarities, get_item_collaborative_predictions
+from recommender_hybrid import get_weighted_hybrid_recommendations
 from recommender_svd import load_svd, get_predictions_svd, map_movie_to_index
 from recommender_linear_regression import get_predictions_linear_regression
 from utils.opening_feat import load_features
@@ -43,7 +42,7 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
         # exit()
 
         # start = time.time()
-        # predictions_item_collaborative = get_item_collaborative_predictions(movies_set, _all_ratings, userid)
+        predictions_item_collaborative = get_item_collaborative_predictions(movies_set, _all_ratings, userid)
         # print predictions_item_collaborative
         # print "item-item CF tok", time.time() - start, "seconds"
 
@@ -78,7 +77,17 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
                                                               profile['all_movies'], _low_level_similarity_matrix,
                                                               _ratings_by_movie, _global_average)
         # print predictions_low_level
-        predictions_hybrid = get_hybrid_recommendations(predictions_content_based + predictions_user_collaborative, movies_set)
+        predictions_hybrid = get_weighted_hybrid_recommendations(predictions_content_based +
+                                                                 predictions_user_collaborative, movies_set)
+
+        predictions_hybrid_content_and_item_collaborative = get_weighted_hybrid_recommendations(
+            predictions_content_based + predictions_item_collaborative, movies_set)
+        predictions_hybrid_user_and_item_collaborative = get_weighted_hybrid_recommendations(
+            predictions_user_collaborative + predictions_item_collaborative, movies_set)
+
+        # print predictions_hybrid
+        # print predictions_hybrid_content_and_item_collaborative
+        # print predictions_hybrid_user_and_item_collaborative
 
         # print predictions_content_based
         # print predictions_low_level
@@ -92,9 +101,13 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
                                                     # 'svd': predictions_svd,
                                                     # 'user-bof': predictions_user_bof_based
                                                     # 'linear-regression': predictions_linear_regression,
-                                                    # 'item-collaborative': predictions_item_collaborative,
+                                                    'item-collaborative': predictions_item_collaborative,
                                                     'user-collaborative': predictions_user_collaborative,
-                                                    'hybrid': predictions_hybrid
+                                                    'weighted-hybrid': predictions_hybrid,
+                                                    'weighted-hybrid-content-item':
+                                                        predictions_hybrid_content_and_item_collaborative,
+                                                    'weighted-hybrid-collaborative':
+                                                        predictions_hybrid_user_and_item_collaborative,
                                                      }
                                      }
         user_index += 1
@@ -124,8 +137,8 @@ def build_user_profile(_user_profiles, _convnet_similarity_matrix, _low_level_si
     manager = Manager()
     new_user_profiles = manager.dict()
     # jobs = []
-    # _max = 3112
-    _max = 10
+    _max = 3112
+    # _max = 10
     _step = 1
 
     _general_baseline, _global_average = read_user_general_baseline()
@@ -157,3 +170,4 @@ def build_user_profile(_user_profiles, _convnet_similarity_matrix, _low_level_si
     #     p.join()
 
     return dict(new_user_profiles)
+

@@ -36,19 +36,22 @@ print (time.time() - start), "seconds"
 def experiment(N, user_profiles, convnet_similarity_matrix, low_level_similarity_matrix):
 
     # DEEP FEATURES - BOF
-    dp, dr, dd, dm, drs = evaluation.evaluate(user_profiles, N, 'deep', convnet_similarity_matrix)
+    dp, dr, dd, dm, drs, df1 = evaluation.evaluate(user_profiles, N, 'deep', convnet_similarity_matrix)
     # Low Level
     # llp, llr, lld, llm = evaluation.evaluate(user_profiles, N, 'low-level', low_level_similarity_matrix)
-    llp, llr, lld, llm, llrs = evaluation.evaluate(user_profiles, N, 'low-level', convnet_similarity_matrix)
+    llp, llr, lld, llm, llrs, llf1 = evaluation.evaluate(user_profiles, N, 'low-level', low_level_similarity_matrix)
     # User BoF
     # ubp, ubr, ubd, ubm = evaluation.evaluate(user_profiles, N, 'user-bof', convnet_similarity_matrix)
 
     # Collaborative Filtering
-    cp, cr, cd, cm, crs = evaluation.evaluate(user_profiles, N, 'user-collaborative', convnet_similarity_matrix)
+    cp, cr, cd, cm, crs, cf1 = evaluation.evaluate(user_profiles, N, 'user-collaborative', convnet_similarity_matrix)
     # Collaborative Filtering - Item
-    # cip, cir, cid, cim = evaluation.evaluate(user_profiles, N, 'item-collaborative', convnet_similarity_matrix)
+    cip, cir, cid, cim, cirs, cif1 = evaluation.evaluate(user_profiles, N, 'item-collaborative', convnet_similarity_matrix)
     # Hybrid
-    hp, hr, hd, hm, hrs = evaluation.evaluate(user_profiles, N, 'hybrid', convnet_similarity_matrix)
+    hp, hr, hd, hm, hrs, hf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid', convnet_similarity_matrix)
+
+    h2p, h2r, h2d, h2m, h2rs, h2f1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-content-item', convnet_similarity_matrix)
+    h3p, h3r, h3d, h3m, h3rs, h3f1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-collaborative', convnet_similarity_matrix)
 
     # SVD
     # svdp, svdr, svdd, svdm = evaluation.evaluate(user_profiles, N, 'svd', convnet_similarity_matrix)
@@ -56,14 +59,16 @@ def experiment(N, user_profiles, convnet_similarity_matrix, low_level_similarity
     # lrp, lrr, lrd, lrm = evaluation.evaluate(user_profiles, N, 'linear-regression', convnet_similarity_matrix)
 
     return {
-            'deep': {'precision': dp, 'recall': dr, 'diversity': dd, 'mae': dm, 'rankscore': drs},
-            'low-level': {'precision': llp, 'recall': llr, 'diversity': lld, 'mae': llm, 'rankscore': llrs},
+            'deep': {'precision': dp, 'recall': dr, 'diversity': dd, 'mae': dm, 'rankscore': drs, 'f1': df1},
+            'low-level': {'precision': llp, 'recall': llr, 'diversity': lld, 'mae': llm, 'rankscore': llrs, 'f1': llf1},
             # 'user-bof': {'precision': ubp, 'recall': ubr, 'diversity': ubd, 'mae': ubm},
-            'user-collaborative': {'precision': cp, 'recall': cr, 'diversity': cd, 'mae': cm, 'rankscore': crs},
-            # 'item-collaborative': {'precision': cip, 'recall': cir, 'diversity': cid, 'mae': cim},
-            'hybrid': {'precision': hp, 'recall': hr, 'diversity': hd, 'mae': hm, 'rankscore': hrs},
+            'user-collaborative': {'precision': cp, 'recall': cr, 'diversity': cd, 'mae': cm, 'rankscore': crs, 'f1': cf1},
+            'item-collaborative': {'precision': cip, 'recall': cir, 'diversity': cid, 'mae': cim, 'rankscore': cirs, 'f1': cif1},
+            'weighted-hybrid': {'precision': hp, 'recall': hr, 'diversity': hd, 'mae': hm, 'rankscore': hrs, 'f1': hf1},
             # 'svd': {'precision': svdp, 'recall': svdr, 'diversity': svdd, 'mae': svdm},
             # 'linear-regression': {'precision': lrp, 'recall': lrr, 'diversity': lrd, 'mae': lrm}
+            'weighted-hybrid-content-item': {'precision': h2p, 'recall': h2r, 'diversity': h2d, 'mae': h2m, 'rankscore': h2rs, 'f1': h2f1},
+            'weighted-hybrid-collaborative': {'precision': h3p, 'recall': h3r, 'diversity': h3d, 'mae': h3m, 'rankscore': h3rs, 'f1': h3f1},
             }
 
 results = {}
@@ -76,4 +81,4 @@ print results
 save_obj(new_user_profiles, 'profiles_with_predictions')
 save_obj(results, 'results_3112_users')
 end = time.time()
-print "Execution time", (end - start)
+print "Execution time", (end - start), "seconds."

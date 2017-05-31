@@ -92,8 +92,7 @@ def get_user_collaborative_predictions_precomputed_similarities(movies_to_predic
 
 
 def get_item_collaborative_predictions_precomputed_similarities(movies_to_predict, _all_ratings, _target_user_id,
-                                                                _item_item_sim_matrix, user_baseline,
-                                                                _ratings_by_movie, _global_average):
+                                                                _item_item_sim_matrix):
     predictions = []
     _limit_top_neighbours_to = 50
     # target_user_ratings = _all_ratings[_all_ratings['userID'] == _target_user_id]
@@ -153,6 +152,7 @@ def get_item_collaborative_predictions(movies_to_predict, _all_ratings, _target_
 
             intersect = pd.merge(_all_ratings[_all_ratings['id'] == rated_movie],
                                  _all_ratings[_all_ratings['id'] == trailer_id], on='userID')
+            # print intersect
             try:
                 sim = cosine_similarity(intersect['rating_x'].reshape(1, -1), intersect['rating_y'].reshape(1, -1))
                 top_neighbours.append((rated_movie, sim[0][0], intersect))

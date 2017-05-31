@@ -39,11 +39,35 @@ def predict_user_rating(user_baseline, trailer_id, all_similarities, _ratings_by
 
 def get_content_based_predictions(user_baseline, movies, all_movies, sim_matrix, _ratings_by_movie, _global_average):
 
+    # predictions = [(movie[0], predict_user_rating(user_baseline, movie[0],
+    #                                               [(movieJ[1], sim_matrix[movieJ[0]][movie[0]])
+    #                                                for movieJ in all_movies if movieJ[0] != movie[0]],
+    #                                               _ratings_by_movie, _global_average))
+    #                for movie in movies]
     predictions = [(movie[0], predict_user_rating(user_baseline, movie[0],
                                                   [(movieJ[1], sim_matrix[movieJ[0]][movie[0]])
-                                                   for movieJ in all_movies], _ratings_by_movie, _global_average))
+                                                   for movieJ in all_movies],
+                                                  _ratings_by_movie, _global_average))
                    for movie in movies]
 
+    # print predictions
+    return sort_desc(predictions)
+
+
+def get_tag_based_predictions(user_baseline, movies, all_movies, sim_matrix, _ratings_by_movie, _global_average):
+
+    predictions = [(movie[0], predict_user_rating(user_baseline, movie[0],
+                                                  [(movieJ[1], sim_matrix[movieJ[0]][movie[0]])
+                                                   for movieJ in all_movies if movieJ[0] != movie[0]],
+                                                  _ratings_by_movie, _global_average))
+                   for movie in movies]
+    # predictions = [(movie[0], predict_user_rating(user_baseline, movie[0],
+    #                                               [(movieJ[1], sim_matrix[movieJ[0]][movie[0]])
+    #                                                for movieJ in all_movies],
+    #                                               _ratings_by_movie, _global_average))
+    #                for movie in movies]
+
+    # print predictions
     return sort_desc(predictions)
 
 

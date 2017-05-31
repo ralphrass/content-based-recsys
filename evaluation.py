@@ -13,7 +13,7 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
     for user, profile in user_profiles.iteritems():
 
         relevant_set = profile['datasets']['relevant_movies']
-        # irrelevant_set = profile['datasets']['irrelevant_movies']
+        irrelevant_set = profile['datasets']['irrelevant_movies']
         full_prediction_set = profile['predictions'][feature_vector_name]
         #
         # print "Relevant Set", relevant_set
@@ -46,10 +46,12 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
 
         # how many items of the relevant set are retrieved (top-N)?
         true_positives = float(sum([1 if movie[0] in topN else 0 for movie in relevant_set]))
-        # true_negatives = float(sum([1 if movie[2] not in topN else 0 for movie in irrelevant_set]))
+        true_negatives = float(sum([1 if movie[0] not in topN else 0 for movie in irrelevant_set]))
 
         false_negatives = float(len(relevant_set) - true_positives)
-        # false_positives = float(len(irrelevant_set) - true_negatives)
+        false_positives = float(len(irrelevant_set) - true_negatives)
+
+        # print user, "TP: ", true_positives, "TN: ", true_negatives, "FN", false_negatives, "FP", false_positives
 
         if _n > 1:  # and sim_matrix is not None:  # content-based filtering
             try:
@@ -60,7 +62,8 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
         # else:  # collaborative filtering
 
         try:
-            precision = true_positives / float(_n)
+            # precision = true_positives / float(_n)
+            precision = true_positives / float(true_positives + false_positives)
         except ZeroDivisionError:
             precision = 0
 
@@ -76,6 +79,7 @@ def evaluate(user_profiles, _n, feature_vector_name, sim_matrix):
         try:
             sum_f1 += (2 * precision * recall) / (precision + recall)
         except ZeroDivisionError:
+            # print "error on F1"
             pass
 
         try:

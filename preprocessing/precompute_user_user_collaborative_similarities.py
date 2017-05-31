@@ -8,7 +8,7 @@ from utils.utils import sort_desc
 from scipy.stats import pearsonr
 from utils.opening_feat import load_features, save_obj
 
-user_profiles = load_features('content/user_profiles_dataframe_3112_users.pkl')
+user_profiles = load_features('/home/ralph/Dev/content-based-recsys/content/user_profiles_dataframe_all_users.pkl')
 # print user_profiles.loc[3113]
 # exit()
 # print user_profiles.columns
@@ -18,7 +18,7 @@ conn = sqlite3.connect('content/database.db')
 _all_ratings = pd.read_sql('select userID, t.id, rating from movielens_rating r '
                            'join movielens_movie m on m.movielensid = r.movielensid '
                            'join trailers t on t.imdbid = m.imdbidtt '
-                           'where userid < 5000 '
+                           # 'where userid < 5000 '
                            'order by userid', conn)
 conn.close()
 

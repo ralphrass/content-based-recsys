@@ -10,9 +10,9 @@ _avg_ratings = 3.51611876907599
 
 start = time.time()
 
-conn = sqlite3.connect('content/database.db')
+conn = sqlite3.connect('/home/ralph/Dev/content-based-recsys/content/database.db')
 
-_deep_features_bof = extract_features('content/bof_128.bin')
+# _deep_features_bof = extract_features('content/bof_128.bin')
 
 # sql_users = "SELECT r.userid, t.id, r.rating, mt.avgrating " \
 #             "FROM trailers t " \
@@ -23,6 +23,14 @@ _deep_features_bof = extract_features('content/bof_128.bin')
 #             "AND r.userid < 5000 " \
 #             "ORDER BY r.userid, t.id"
 
+# sql_users = "SELECT r.userid, t.id, r.rating " \
+#             "FROM trailers t " \
+#             "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
+#             "JOIN movielens_rating r ON r.movielensid = m.movielensid " \
+#             "WHERE t.best_file = 1 " \
+#             " And userid < 5000 "\
+#             "ORDER BY r.userid, t.id"
+
 sql_users = "SELECT r.userid, t.id, r.rating " \
             "FROM trailers t " \
             "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
@@ -30,11 +38,25 @@ sql_users = "SELECT r.userid, t.id, r.rating " \
             "WHERE t.best_file = 1 " \
             "ORDER BY r.userid, t.id"
 
-sql_all_movies = "SELECT t.id, 1 " \
-                  "FROM movies m " \
-                  "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
-                  "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
-                  "WHERE EXISTS (SELECT movielensid FROM movielens_rating r WHERE r.movielensid = mm.movielensid) "
+# sql_all_movies = "SELECT t.id, 1 " \
+#                  "FROM movies m " \
+#                  "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
+#                  "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
+#                  "WHERE EXISTS (SELECT movielensid FROM movielens_rating r WHERE r.movielensid = mm.movielensid) "
+# sql_all_movies = "SELECT DISTINCT t.id, 1 " \
+#                  "FROM movies m " \
+#                  "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
+#                  "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
+#                  "JOIN movielens_rating r ON r.movielensid = mm.movielensid " \
+#                  "WHERE userid < 5000 " \
+#                  "AND t.best_file = 1"
+
+sql_all_movies = "SELECT DISTINCT t.id, 1 " \
+                 "FROM movies m " \
+                 "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
+                 "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
+                 "JOIN movielens_rating r ON r.movielensid = mm.movielensid " \
+                 "WHERE t.best_file = 1"
 
 # c = conn.cursor()
 # c.execute(sql_users)
@@ -55,7 +77,7 @@ _general_baseline, _global_average = read_user_general_baseline()
 # exit()
 
 users_dict = dict()
-users_bof_dict = dict()
+# users_bof_dict = dict()
 
 count = 1
 # current_user = 0
@@ -63,7 +85,7 @@ count = 1
 # for userid, trailerid, rating, avgrating in _all_users_with_movies:
 for user in _users:
 
-    if count % 50000 == 0:
+    if count % 5000 == 0:
         print count, "user-movies read"
         # break
 

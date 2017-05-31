@@ -17,7 +17,7 @@ def evaluate_average(sum, count):
 
 def read_user_general_baseline():
 
-    conn = sqlite3.connect('content/database.db')
+    conn = sqlite3.connect('/home/ralph/Dev/content-based-recsys/content/database.db')
 
     _ratings = pd.read_sql("SELECT userid, SUM(rating)/COUNT(rating) AS average "
                            "FROM movielens_rating GROUP BY userid ORDER BY userid", conn, columns=['userID', 'average'])
@@ -28,7 +28,7 @@ def read_user_general_baseline():
 
 def read_movie_general_baseline():
 
-    conn = sqlite3.connect('content/database.db')
+    conn = sqlite3.connect('/home/ralph/Dev/content-based-recsys/content/database.db')
     _ratings_by_movie = pd.read_sql("SELECT t.id, SUM(rating)/COUNT(rating) AS average "
                                     "FROM movielens_rating r "
                                     "JOIN movielens_movie m on m.movielensid = r.movielensid "

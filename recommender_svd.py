@@ -56,7 +56,7 @@ def map_movie_to_index():
 
 
 def load_svd():
-    _k = 20
+    _k = 100
     # matrix = np.loadtxt('content/full_matrix_for_svd.pkl')
     matrix = load_features('content/full_matrix_for_svd.pkl')
     np_matrix = matrix.as_matrix()

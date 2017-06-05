@@ -1,0 +1,15 @@
+from utils.opening_feat import load_features
+from recommender_hybrid import get_weighted_hybrid_recommendations
+
+user_profiles = load_features('profiles_with_predictions.pkl')
+
+# print user_profiles[1]['predictions']['low-level']
+# print user_profiles[1]['predictions']['deep']
+
+for user, profile in user_profiles.iteritems():
+
+    movie_set = [movie_id for movie_id, prediction in profile['predictions']['svd']]
+    hybrid_recommendations = get_weighted_hybrid_recommendations(
+        profile['predictions']['deep'] + profile['predictions']['low-level'], profile['predictions']['svd'])
+
+    print hybrid_recommendations

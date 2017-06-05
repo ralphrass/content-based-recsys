@@ -60,8 +60,38 @@ def experiment(N, user_profiles, convnet_similarity_matrix, low_level_similarity
     # Collaborative Filtering - Item
     cip, cir, cid, cim, cirs, cif1 = evaluation.evaluate(user_profiles, N, 'item-collaborative', convnet_similarity_matrix)
     # Hybrid
-    hp, hr, hd, hm, hrs, hf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid', convnet_similarity_matrix)
-    swp, swr, swd, swm, swrs, swf1 = evaluation.evaluate(user_profiles, N, 'switching-hybrid', convnet_similarity_matrix)
+    hstp, hstr, hstd, hstm, hstrs, hstf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-synopsis-tags',
+                                                   convnet_similarity_matrix)
+    hsllp, hsllr, hslld, hsllm, hsllrs, hsllf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-synopsis-low-level',
+                                                   convnet_similarity_matrix)
+    hsicp, hsicr, hsicd, hsicm, hsicrs, hsicf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-synopsis-item-collaborative',
+                                                   convnet_similarity_matrix)
+    hsdp, hsdr, hsdd, hsdm, hsdrs, hsdf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-synopsis-deep',
+                                                   convnet_similarity_matrix)
+    hsucp, hsucr, hsucd, hsucm, hsucrs, hsucf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-synopsis-user-collaborative',
+                                                   convnet_similarity_matrix)
+    htllp, htllr, htlld, htllm, htllrs, htllf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-tags-low-level',
+                                                   convnet_similarity_matrix)
+    hticp, hticr, hticd, hticm, hticrs, hticf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-tags-item-collaborative',
+                                                   convnet_similarity_matrix)
+    htdp, htdr, htdd, htdm, htdrs, htdf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-tags-deep',
+                                                   convnet_similarity_matrix)
+    htucp, htucr, htucd, htucm, htucrs, htucf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-tags-user-collaborative',
+                                                   convnet_similarity_matrix)
+    hllicp, hllicr, hllicd, hllicm, hllicrs, hllicf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-low-level-item-collaborative',
+                                                   convnet_similarity_matrix)
+    hlldp, hlldr, hlldd, hlldm, hlldrs, hlldf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-low-level-deep',
+                                                   convnet_similarity_matrix)
+    hllucp, hllucr, hllucd, hllucm, hllucrs, hllucf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-low-level-user-collaborative',
+                                                   convnet_similarity_matrix)
+    hicdp, hicdr, hicdd, hicdm, hicdrs, hicdf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-item-collaborative-deep',
+                                                   convnet_similarity_matrix)
+    hicucp, hicucr, hicucd, hicucm, hicucrs, hicucf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-item-collaborative-user-collaborative',
+                                                   convnet_similarity_matrix)
+    hducp, hducr, hducd, hducm, hducrs, hducf1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-deep-user-collaborative',
+                                                   convnet_similarity_matrix)
+
+    # swp, swr, swd, swm, swrs, swf1 = evaluation.evaluate(user_profiles, N, 'switching-hybrid', convnet_similarity_matrix)
 
     # h2p, h2r, h2d, h2m, h2rs, h2f1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-content-item', convnet_similarity_matrix)
     # h3p, h3r, h3d, h3m, h3rs, h3f1 = evaluation.evaluate(user_profiles, N, 'weighted-hybrid-collaborative', convnet_similarity_matrix)
@@ -78,9 +108,38 @@ def experiment(N, user_profiles, convnet_similarity_matrix, low_level_similarity
             'synopsis': {'precision': syp, 'recall': syr, 'diversity': syd, 'mae': sym, 'rankscore': syrs, 'f1': syf1},
             'user-collaborative': {'precision': cp, 'recall': cr, 'diversity': cd, 'mae': cm, 'rankscore': crs, 'f1': cf1},
             'item-collaborative': {'precision': cip, 'recall': cir, 'diversity': cid, 'mae': cim, 'rankscore': cirs, 'f1': cif1},
-            'weighted-hybrid': {'precision': hp, 'recall': hr, 'diversity': hd, 'mae': hm, 'rankscore': hrs, 'f1': hf1},
-            'switching-hybrid': {'precision': swp, 'recall': swr, 'diversity': swd, 'mae': swm, 'rankscore': swrs, 'f1': swf1},
             'svd': {'precision': svdp, 'recall': svdr, 'diversity': svdd, 'mae': svdm, 'rankscore': svdrs, 'f1': svdf1},
+            # Weighted Hybrid: all possible combinations
+            'weighted-hybrid-synopsis-tags': {'precision': hstp, 'recall': hstr, 'diversity': hstd, 'mae': hstm, 'rankscore': hstrs, 'f1': hstf1},
+            'weighted-hybrid-synopsis-low-level': {'precision': hsllp, 'recall': hsllr, 'diversity': hslld, 'mae': hsllm,
+                                                   'rankscore': hsllrs, 'f1': hsllf1},
+            'weighted-hybrid-synopsis-deep': {'precision': hsdp, 'recall': hsdr, 'diversity': hsdd, 'mae': hsdm,
+                                              'rankscore': hsdrs, 'f1': hsdf1},
+            'weighted-hybrid-synopsis-item-collaborative': {'precision': hsicp, 'recall': hsicr, 'diversity': hsicd, 'mae': hsicm,
+                                                            'rankscore': hsicrs, 'f1': hsicf1},
+            'weighted-hybrid-synopsis-user-collaborative': {'precision': hsucp, 'recall': hsucr, 'diversity': hsucd,
+                                                            'mae': hsucm, 'rankscore': hsucrs, 'f1': hsucf1},
+            'weighted-hybrid-tags-low-level': {'precision': htllp, 'recall': htllr, 'diversity': htlld,
+                                               'mae': htllm, 'rankscore': htllrs, 'f1': htllf1},
+            'weighted-hybrid-tags-item-collaborative': {'precision': hticp, 'recall': hticr, 'diversity': hticd,
+                                                        'mae': hticm, 'rankscore': hticrs, 'f1': hticf1},
+            'weighted-hybrid-tags-deep': {'precision': htdp, 'recall': htdr, 'diversity': htdd,
+                                          'mae': htdm, 'rankscore': htdrs, 'f1': htdf1},
+            'weighted-hybrid-tags-user-collaborative': {'precision': htucp, 'recall': htucr, 'diversity': htucd,
+                                                        'mae': htucm, 'rankscore': htucrs, 'f1': htucf1},
+            'weighted-hybrid-low-level-item-collaborative': {'precision': hllicp, 'recall': hllicr, 'diversity': hllicd,
+                                                             'mae': hllicm, 'rankscore': hllicrs, 'f1': hllicf1},
+            'weighted-hybrid-low-level-deep': {'precision': hlldp, 'recall': hlldr, 'diversity': hlldd,
+                                               'mae': hlldm, 'rankscore': hlldrs, 'f1': hlldf1},
+            'weighted-hybrid-low-level-user-collaborative': {'precision': hllucp, 'recall': hllucr, 'diversity': hllucd,
+                                                             'mae': hllucm, 'rankscore': hllucrs, 'f1': hllucf1},
+            'weighted-hybrid-item-collaborative-deep': {'precision': hicdp, 'recall': hicdr, 'diversity': hicdd,
+                                                        'mae': hicdm, 'rankscore': hicdrs, 'f1': hicdf1},
+            'weighted-hybrid-item-collaborative-user-collaborative': {'precision': hicucp, 'recall': hicucr, 'diversity': hicucd,
+                                                                      'mae': hicucm, 'rankscore': hicucrs, 'f1': hicucf1},
+            'weighted-hybrid-deep-user-collaborative': {'precision': hducp, 'recall': hducr, 'diversity': hducd,
+                                                        'mae': hducm, 'rankscore': hducrs, 'f1': hducf1},
+            # 'switching-hybrid': {'precision': swp, 'recall': swr, 'diversity': swd, 'mae': swm, 'rankscore': swrs, 'f1': swf1},
 
             # 'linear-regression': {'precision': lrp, 'recall': lrr, 'diversity': lrd, 'mae': lrm}
             # 'weighted-hybrid-content-item': {'precision': h2p, 'recall': h2r, 'diversity': h2d, 'mae': h2m, 'rankscore': h2rs, 'f1': h2f1},
@@ -97,6 +156,6 @@ for index in range(2, 16):
 print results[15]
 
 save_obj(new_user_profiles, 'profiles_with_predictions')
-save_obj(results, 'results_1_users')
+save_obj(results, 'results_3_users')
 end = time.time()
 print "Execution time", (end - start), "seconds."

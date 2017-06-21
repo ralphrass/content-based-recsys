@@ -151,6 +151,13 @@ for result in results.iteritems():
     wh_deep_user_collaborative['f1'].append(result[1]['weighted-hybrid-deep-user-collaborative']['f1'])
 
 
+print "Sinopse+UC", wh_synopsis_user_collaborative_mae
+print "Tags+UC", wh_tags_user_collaborative_mae
+print "LL+UC", wh_low_level_user_collaborative_mae
+print "IC+UC", wh_item_collaborative_user_collaborative_mae
+print "D+UC", wh_deep_user_collaborative_mae
+exit()
+
 linewidth = 1.1
 list_styles = ['solid', 'dashed', 'dotted', 'dashdot']
 

@@ -23,20 +23,20 @@ conn = sqlite3.connect('/home/ralph/Dev/content-based-recsys/content/database.db
 #             "AND r.userid < 5000 " \
 #             "ORDER BY r.userid, t.id"
 
-# sql_users = "SELECT r.userid, t.id, r.rating " \
-#             "FROM trailers t " \
-#             "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
-#             "JOIN movielens_rating r ON r.movielensid = m.movielensid " \
-#             "WHERE t.best_file = 1 " \
-#             " And userid < 5000 "\
-#             "ORDER BY r.userid, t.id"
-
 sql_users = "SELECT r.userid, t.id, r.rating " \
             "FROM trailers t " \
             "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
             "JOIN movielens_rating r ON r.movielensid = m.movielensid " \
             "WHERE t.best_file = 1 " \
+            " And userid < 5000 "\
             "ORDER BY r.userid, t.id"
+
+# sql_users = "SELECT r.userid, t.id, r.rating " \
+#             "FROM trailers t " \
+#             "JOIN movielens_movie m ON m.imdbidtt = t.imdbid " \
+#             "JOIN movielens_rating r ON r.movielensid = m.movielensid " \
+#             "WHERE t.best_file = 1 " \
+#             "ORDER BY r.userid, t.id"
 
 # sql_all_movies = "SELECT t.id, 1 " \
 #                  "FROM movies m " \
@@ -55,8 +55,14 @@ sql_all_movies = "SELECT DISTINCT t.id, 1 " \
                  "FROM movies m " \
                  "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
                  "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
-                 "JOIN movielens_rating r ON r.movielensid = mm.movielensid " \
-                 "WHERE t.best_file = 1"
+                 "JOIN movielens_rating r ON r.movielensid = mm.movielensid "
+
+# sql_all_movies = "SELECT DISTINCT t.id, 1 " \
+#                  "FROM movies m " \
+#                  "JOIN movielens_movie mm ON mm.imdbidtt = m.imdbid " \
+#                  "JOIN trailers t ON t.imdbID = m.imdbID AND t.best_file = 1 " \
+#                  "JOIN movielens_tag mt ON mt.movielensid = mm.movielensid " \
+#                  "JOIN movielens_rating r ON r.movielensid = mm.movielensid AND r.userid = mt.userid "
 
 # c = conn.cursor()
 # c.execute(sql_users)
@@ -118,7 +124,7 @@ user_movies_df = pd.DataFrame.from_dict(data=users_dict, orient='index')
 print user_movies_df.columns
 print user_movies_df.head()
 
-# user_movies_df.to_pickle('user_profiles_dataframe_1k.pkl')
-user_movies_df.to_pickle('user_profiles_dataframe_all_users.pkl')
+user_movies_df.to_pickle('user_profiles_dataframe_3112_users.pkl')
+# user_movies_df.to_pickle('user_profiles_dataframe_all_users.pkl')
 
 print "it tok", time.time() - start, "seconds"

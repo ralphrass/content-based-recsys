@@ -17,8 +17,8 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
                                       _low_level_similarity_matrix, _all_ratings, _global_average, _ratings_by_movie,
                                       _user_user_collaborative_matrix, _trailers_tfidf_sims_matrix,
                                       _trailers_tfidf_synopsis_sims_matrix,
-                                      svd_matrix, movies_to_index):
-                                      # , _item_item_collaborative_matrix):
+                                      svd_matrix, movies_to_index# ):
+                                      , _item_item_collaborative_matrix):
 
     user_index = 0
     compute_collaborative = 1
@@ -36,7 +36,8 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
         #    count = 0
         # print "relevant set", profile['relevant_set']
 
-        movies_set = profile['relevant_set'] + profile['irrelevant_set'] + profile['random_set']
+        # movies_set = profile['relevant_set'] + profile['irrelevant_set'] + profile['random_set']
+        movies_set = profile['all_movies']
 
         if type(movies_set) == float:
             continue
@@ -46,7 +47,7 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
         predictions_low_level = get_content_based_predictions(profile['user_baseline'], movies_set,
                                                               profile['all_movies'], _low_level_similarity_matrix,
                                                               _ratings_by_movie, _global_average)
-        # print "LL tok", time.time() - start, "seconds."
+        print "LL tok", time.time() - start, "seconds."
         avg_time_ll += time.time() - start
 
         start = time.time()
@@ -54,7 +55,7 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
         predictions_content_based = get_content_based_predictions(profile['user_baseline'], movies_set,
                                                                   profile['all_movies'], _convnet_similarity_matrix,
                                                                   _ratings_by_movie, _global_average)
-        # print "Deep tok", time.time() - start, "seconds."
+        print "Deep tok", time.time() - start, "seconds."
         avg_time_deep += time.time() - start
 
         start = time.time()
@@ -63,7 +64,7 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
                                                                    profile['all_movies'],
                                                                    _trailers_tfidf_synopsis_sims_matrix,
                                                                    _ratings_by_movie, _global_average)
-        # print "Synopsis tok", time.time() - start, "seconds."
+        print "Synopsis tok", time.time() - start, "seconds."
         avg_time_synopsys += time.time() - start
 
         start = time.time()
@@ -72,7 +73,7 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
                                                                 profile['all_movies'],
                                                                 _trailers_tfidf_sims_matrix, _ratings_by_movie,
                                                                 _global_average)
-        # print "Tag tok", time.time() - start, "seconds."
+        print "Tag tok", time.time() - start, "seconds."
         avg_time_tag += time.time() - start
 
         if compute_collaborative == 1:
@@ -89,7 +90,7 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
             # predictions_item_collaborative_precomputed_sims = \
             #     get_item_collaborative_predictions_precomputed_similarities(movies_set, _all_ratings, userid,
             #                                                                 _item_item_collaborative_matrix)
-            # print "Item_colaborative tok", time.time() - start, "seconds."
+            print "Item_colaborative tok", time.time() - start, "seconds."
             avg_time_item_collaborative += time.time() - start
             # print predictions_item_collaborative
             # print predictions_item_collaborative_precomputed_sims
@@ -107,7 +108,7 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
             # PS: it uses pearson r similarity. it filters out when the intersection has less than 5 items.
             predictions_user_collaborative = get_user_collaborative_predictions_precomputed_similarities(
                 movies_set, _user_profiles, _all_ratings, userid, profile['avg'], _user_user_collaborative_matrix)
-            # print "User-Collaborative tok", time.time() - start, "seconds."
+            print "User-Collaborative tok", time.time() - start, "seconds."
             avg_time_user_collaborative += time.time() - start
 
             start = time.time()
@@ -116,7 +117,8 @@ def calculate_user_rating_predictions(_start, _end, _user_profiles, new_user_pro
             print "Relevant Set", profile['relevant_set']
             print "Low Level:", predictions_low_level
             print "RNC:", predictions_content_based
-            print "FC-I", predictions_item_collaborative
+            # print "FC-I", predictions_item_collaborative
+            print "FC-I precomputed", predictions_item_collaborative
             print "FC-U", predictions_user_collaborative
             print "Sinopse", predictions_synopsis_based
             print "Tags", predictions_tfidf_based
@@ -222,8 +224,8 @@ def read_all_ratings():
 # Predict ratings
 def build_user_profile(_user_profiles, _convnet_similarity_matrix, _low_level_similarity_matrix,
                        _user_user_collaborative_matrix, _trailers_tfidf_sims_matrix,
-                       _trailers_tfidf_synopsis_sims_matrix):
-                       # , _item_item_collaborative_matrix):
+                       _trailers_tfidf_synopsis_sims_matrix #):
+                       , _item_item_collaborative_matrix):
 
     _all_ratings = read_all_ratings()
     # _all_ratings = None
@@ -232,7 +234,7 @@ def build_user_profile(_user_profiles, _convnet_similarity_matrix, _low_level_si
     new_user_profiles = manager.dict()
     # jobs = []
     # _max = 3112
-    _max = 3
+    _max = 10
     _step = 1
 
     _general_baseline, _global_average = read_user_general_baseline()
@@ -256,8 +258,8 @@ def build_user_profile(_user_profiles, _convnet_similarity_matrix, _low_level_si
                                           _convnet_similarity_matrix, _low_level_similarity_matrix, _all_ratings,
                                           _global_average, _ratings_by_movie, _user_user_collaborative_matrix,
                                           _trailers_tfidf_sims_matrix, _trailers_tfidf_synopsis_sims_matrix,
-                                          svd_matrix, movies_to_index)
-                                          # _item_item_collaborative_matrix)
+                                          svd_matrix, movies_to_index, # )
+                                          _item_item_collaborative_matrix)
     #     p = Process(target=calculate_user_rating_predictions, args=(idx, idx + _step, _user_profiles, new_user_profiles,
     #                                                                 _convnet_similarity_matrix, _all_ratings))
     #     jobs.append(p)

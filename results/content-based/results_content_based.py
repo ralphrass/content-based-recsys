@@ -13,7 +13,7 @@ from matplotlib import pyplot as plt
 # save_obj(results, 'full_results_3112_users')
 # exit()
 
-results = load_features('results_3112_users.pkl')
+results = load_features('../results_3112_users.pkl')
 
 # collaborative, DeepRecVis (deep), user-centroid, user-centroid-relevant-movies, mixing-weighted-hybrid, weighted-weighted-hybrid
 listing = []
@@ -66,6 +66,12 @@ for result in results.iteritems():
     synopsis['diversity'].append(result[1]['synopsis']['diversity'])
     synopsis['rankscore'].append(result[1]['synopsis']['rankscore'])
     synopsis['f1'].append(result[1]['synopsis']['f1'])
+
+print "d", d_mae
+print "ll", ll_mae
+print "tags", tfidf_mae
+print "sinopse", synopsis_mae
+exit()
 
 linewidth = 1.1
 list_styles = ['solid', 'dashed', 'dotted', 'dashdot']

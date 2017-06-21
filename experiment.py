@@ -8,6 +8,15 @@ start = time.time()
 # 85040 is the full set size (4252 is 20 iterations)
 # users = select_random_users(conn, 100 * batch, 100)
 
+_item_item_collaborative_matrix = load_features('content/item_item_collaborative_similarities.pkl')
+
+# print _item_item_collaborative_matrix[4484]
+# x = [k for k, v in _item_item_collaborative_matrix[4484] if v == (4485, 23.988368963108908)]
+# print x
+# print _item_item_collaborative_matrix[4484].index((4485, 23.988368963108908))
+# print _item_item_collaborative_matrix[4484].index((4486, -40.004855289600997))
+# exit()
+
 print "loading user profiles..."
 user_profiles = load_features('content/user_profiles_dataframe_3112_users.pkl')
 # user_profiles = load_features('content/user_profiles_dataframe_all_users.pkl')
@@ -25,7 +34,8 @@ convnet_sim_matrix = load_features('content/movie_cosine_similarities_deep.bin')
 low_level_sim_matrix = load_features('content/movie_cosine_similarities_low_level.bin')
 # _user_bof_sim_matrix = load_features('content/3112_user_user_bof_similarities.pkl')
 _user_user_collaborative_matrix = load_features('content/user_user_collaborative_similarities.pkl')
-# _item_item_collaborative_matrix = load_features('content/item_item_collaborative_similarities.pkl')
+
+
 # _item_item_collaborative_matrix = None
 _trailers_tfidf_sims_matrix = load_features('content/trailer_tfidf_similarities.pkl')
 _trailers_tfidf_synopsis_sims_matrix = load_features('content/trailer_tfidf_synopsis_similarities.pkl')
@@ -35,8 +45,8 @@ start = time.time()
 
 new_user_profiles = recommender.build_user_profile(user_profiles, convnet_sim_matrix, low_level_sim_matrix,
                                                    _user_user_collaborative_matrix, _trailers_tfidf_sims_matrix,
-                                                   _trailers_tfidf_synopsis_sims_matrix)
-                                                   # _item_item_collaborative_matrix)
+                                                   _trailers_tfidf_synopsis_sims_matrix # )
+                                                   , _item_item_collaborative_matrix)
 
 print "Profiles built"
 print (time.time() - start), "seconds"
@@ -156,6 +166,6 @@ for index in range(2, 16):
 print results[15]
 
 save_obj(new_user_profiles, 'profiles_with_predictions')
-save_obj(results, 'results_3_users')
+save_obj(results, 'results_50_users')
 end = time.time()
 print "Execution time", (end - start), "seconds."

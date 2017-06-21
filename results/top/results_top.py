@@ -53,6 +53,11 @@ for result in results.iteritems():
     item_collaborative['rankscore'].append(result[1]['item-collaborative']['rankscore'])
     item_collaborative['f1'].append(result[1]['item-collaborative']['f1'])
 
+print "UC", uc_mae
+print "IC", ic_mae
+print "D", d_mae
+exit()
+
 linewidth = 1.1
 list_styles = ['solid', 'dashed', 'dotted', 'dashdot']
 

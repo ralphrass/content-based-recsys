@@ -94,7 +94,7 @@ def get_user_collaborative_predictions_precomputed_similarities(movies_to_predic
 def get_item_collaborative_predictions_precomputed_similarities(movies_to_predict, _all_ratings, _target_user_id,
                                                                 _item_item_sim_matrix):
     predictions = []
-    _limit_top_neighbours_to = 50
+    _limit_top_neighbours_to = 20
     # target_user_ratings = _all_ratings[_all_ratings['userID'] == _target_user_id]
 
     for trailer_id, rating in movies_to_predict:
@@ -140,7 +140,7 @@ def get_item_collaborative_predictions_precomputed_similarities(movies_to_predic
 def get_item_collaborative_predictions(movies_to_predict, _all_ratings, _target_user_id):
 
     predictions = []
-    _limit_top_neighbours_to = 20
+    _limit_top_neighbours_to = 50
 
     target_user_ratings = _all_ratings[_all_ratings['userID'] == _target_user_id]
 
